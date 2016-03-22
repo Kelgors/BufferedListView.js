@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thalys 26-02-2016</title>
+  <style>
+html, body {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #333;
+}
+ol, ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  height: inherit;
+}
+
+ol > li, ul > li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  height: 30px;
+}
+ol > li:nth-child(odd), ul > li:nth-child(odd) {
+  background: black;
+}
+ol > li:nth-child(even), ul > li:nth-child(even) {
+  background: white;
+}
+#c1 {
+  width: 200px;
+  height: 400px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: block;
+  margin: auto;
+  border: 1px solid black;
+}
+#list-container {
+  position: relative;
+  overflow-y: auto;
+}
+#list-container > .list-content {
+
+}
+#list-container > .list-display {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  margin: 0 auto;
+}
+#c1 > div, #c1 > div > #list-container {
+  height: 100%;
+}
+  </style>
+</head>
+<body>
+  <div id="c1"></div>
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/underscore/underscore-min.js"></script>
+  <script src="bower_components/backbone/backbone-min.js"></script>
+  <script src="bower_components/backbone.marionette/lib/backbone.marionette.js"></script>
+  <script src="index.js" async></script>
+</body>
+</html>
