@@ -25,13 +25,15 @@ ol > li, ul > li {
   padding: 0;
   margin: 0;
   height: 30px;
+  border-bottom: 1px solid black;
+  background: white;
 }
-ol > li:nth-child(odd), ul > li:nth-child(odd) {
+/*ol > li:nth-child(odd), ul > li:nth-child(odd) {
   background: black;
 }
 ol > li:nth-child(even), ul > li:nth-child(even) {
   background: white;
-}
+}*/
 #c1 {
   width: 200px;
   height: 400px;
@@ -51,20 +53,30 @@ ol > li:nth-child(even), ul > li:nth-child(even) {
 #list-container > .list-content {
 
 }
-#list-container > .list-display {
+#list-container > .list-display > li {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
   margin: 0 auto;
 }
 #c1 > div, #c1 > div > #list-container {
   height: 100%;
 }
+
+#debug-container {
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  background: white;
+  width: 300px;
+  height: 100px;
+}
   </style>
+
 </head>
 <body>
   <div id="c1"></div>
+  <div id="debug-container"></div>
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <script src="bower_components/underscore/underscore-min.js"></script>
   <script src="bower_components/backbone/backbone-min.js"></script>
