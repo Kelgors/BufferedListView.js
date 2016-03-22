@@ -81,6 +81,21 @@ ol > li:nth-child(even), ul > li:nth-child(even) {
   <script src="bower_components/underscore/underscore-min.js"></script>
   <script src="bower_components/backbone/backbone-min.js"></script>
   <script src="bower_components/backbone.marionette/lib/backbone.marionette.js"></script>
-  <script src="index.js" async></script>
+  <script src="index.js"></script>
+  <script>
+    function createString() {
+      const count = 30;
+      return Array(count+1).join((Math.random().toString(36)+'00000000000000000').slice(2, 18)).slice(0, count);
+    }
+    const view = new BufferedListView();
+    view.models = new Array(3200);
+    for (let index = 0; index < view.models.length; index++) {
+      view.models[index] = { id: _.uniqueId(), content: String(index) };
+    }
+    $('#c1').append(view.el);
+
+    view.render();
+
+  </script>
 </body>
 </html>
