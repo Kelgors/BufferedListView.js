@@ -16,6 +16,7 @@
     "tests"
   ],
   "dependencies": {
-    "backbone.marionette": "^2.4.4"
+    "backbone.marionette": "^2.4.4",
+    "jquery": "^2.2.2"
   }
 }
