@@ -11,6 +11,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var BufferedListView = function (_Backbone$View) {
   _inherits(BufferedListView, _Backbone$View);
 
+  /**
+   *
+   * @param {Object} options
+   * @param {String} options.listContainerSelector      - Selector where to append child
+   * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
+   * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
+   * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
+   * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
+   * @param {Array} options.models                      - The list of models to be rendered
+   * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
+  **/
+
   function BufferedListView() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
@@ -19,23 +31,27 @@ var BufferedListView = function (_Backbone$View) {
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
 
     _this.el.__view__ = _this;
-    _this.scrollerContainerSelector = '#list-container';
-    _this.listContainerSelector = '#list-container > .list-display:first';
+
+    _this.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
+    _this.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
     _this.scrollPositionY = 0;
-    _this.listHeight = 'auto';
-    _this.listItemHeight = 31;
+    _this.listHeight = options.listHeight || 'auto';
+    _this.listHeightAutoMode = _this.listHeight === 'auto';
+    _this.listItemHeight = options.listItemHeight;
 
     _this.visibleOutboundItemsCount = 2;
 
-    _this.scrollEventCallFrames = 4;
-
     _this.models = options.models || [];
-    _this.viewsPool = new Pool(ItemView, 100);
+    _this.viewsPool = new Pool(ItemView, options.maxPoolSize || -1);
     _this.viewsMap = new Map();
-    if (_this.listHeight === 'auto') {
-      _this.waitToBeAttached = true;
+
+    _this._onWindowResize = _this.onResize.bind(_this);
+    $(window).on('resize', _this._onWindowResize);
+
+    if (_this.listHeightAutoMode) {
       _this.once('attach', function () {
-        this.listHeight = this.$listContainer.outerHeight();
+        this.listHeight = this.queryListHeight();
+        this.updateListScrollerHeight();
         this.renderVisibleItems();
       });
     }
@@ -45,7 +61,10 @@ var BufferedListView = function (_Backbone$View) {
   _createClass(BufferedListView, [{
     key: 'destroy',
     value: function destroy() {
-      this.$el.contents().remove();
+      $(window).off('resize', this._onWindowResize);
+      this._onWindowResize = null;
+      if (this.$el) this.$el.contents().remove();
+      if (this.el) this.el.__view__ = null;
       this.models = null;
       this.viewsPool.destroy();
       this.el = this.$el = null;
@@ -53,33 +72,22 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'template',
     value: function template() {
-      return '<div id="list-container"><div class="list-content"></div><ul class="list-display"></ul></div>';
+      return '<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>';
     }
   }, {
     key: 'render',
     value: function render() {
-      var _this2 = this;
-
+      // render view
       this.$el.html(this.template());
+      // query elements
       this.$listContainer = this.$(this.listContainerSelector);
       this.$scrollerContainer = this.$(this.scrollerContainerSelector);
+      // set on scroll listener
+      this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
-      var eventCalls = 0;
-      this.$scrollerContainer.on('scroll', function () {
-        _this2.scrollPositionY = _this2.$scrollerContainer.scrollTop();
-        //console.log(this.scrollPositionY);
-        _this2.renderVisibleItems();
-        // if (++eventCalls % this.scrollEventCallFrames === 0) {
-        // }
-      });
-      if (this.waitToBeAttached && !this.el.parentNode) {} else {
-        setTimeout(function () {
-          if (_this2.listHeight === 'auto') {
-            _this2.listHeight = _this2.queryListHeight();
-            _this2.updateListContentHeight();
-          }
-          _this2.renderVisibleItems();
-        }, 1000);
+      if (!this.listHeightAutoMode && this.el.parentNode) {
+        this.updateListScrollerHeight();
+        this.renderVisibleItems();
       }
     }
   }, {
@@ -88,37 +96,30 @@ var BufferedListView = function (_Backbone$View) {
       return this.$el.outerHeight();
     }
   }, {
-    key: 'updateListContentHeight',
-    value: function updateListContentHeight() {
+    key: 'updateListScrollerHeight',
+    value: function updateListScrollerHeight() {
       this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight);
     }
   }, {
     key: 'defineRangeOfModelsVisibles',
     value: function defineRangeOfModelsVisibles() {
       var listContentHeight = this.models.length * this.listItemHeight;
-      //const listPositionIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
       var modelsIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
-      //console.log('actual index', modelsIndex);
       this.__actualIndex__ = modelsIndex;
       var modelsCount = Math.floor(this.listHeight / this.listItemHeight) + this.visibleOutboundItemsCount * 2;
       modelsIndex = Math.max(0, modelsIndex - this.visibleOutboundItemsCount);
       var modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount + this.visibleOutboundItemsCount);
-      if (this.scrollPositionY > 100) {
-        //debugger;
-      }
       return [modelsIndex, modelsLength];
     }
   }, {
     key: 'renderVisibleItems',
     value: function renderVisibleItems() {
-      var _this3 = this;
+      var _this2 = this;
 
       var rangeOfModelsVisibles = this.defineRangeOfModelsVisibles();
-      console.log('scrollPositionY', this.scrollPositionY);
-      console.log('range', rangeOfModelsVisibles);
       var visibleModels = this.models.slice(rangeOfModelsVisibles[0], rangeOfModelsVisibles[1]);
       var views = visibleModels.map(function (model, index) {
-        var view = _this3.getView(model, Number(rangeOfModelsVisibles[0]) + Number(index));
+        var view = _this2.getView(model, Number(rangeOfModelsVisibles[0]) + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);
         return view;
       });
@@ -147,7 +148,6 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'removeViews',
     value: function removeViews(views) {
-      //console.log('remove %s views', views.length);
       for (var index = 0; index < views.length; index++) {
         this.removeView(views[index]);
       }
@@ -163,7 +163,6 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'addViews',
     value: function addViews(views) {
-      //console.log('add %s views', views.length);
       for (var index = 0; index < views.length; index++) {
         this.addView(views[index], index);
       }
@@ -173,12 +172,7 @@ var BufferedListView = function (_Backbone$View) {
     value: function addView(view, index) {
       var $container = this.$listContainer;
       var $children = $container.children();
-      //const positionTop = this.scrollPositionY + this.listItemHeight * index;
       var positionTop = this.listItemHeight * view.indexInModelList;
-      // console.log('  addViewAt(%s/%s)', index, $children.length);
-      // if ($children.get(index) === view.el) {
-      //   console.log('    pass over');
-      // }
       view.el.style.top = String(positionTop) + 'px';
       if ($children.length <= index) {
         $container.append(view.el);
@@ -201,10 +195,31 @@ var BufferedListView = function (_Backbone$View) {
           return views.includes(view);
         });
         var viewsToAdd = views;
-        //console.log('viewsToRemove', viewsToRemove);
         this.removeViews(viewsToRemove);
         this.addViews(viewsToAdd);
       }
+    }
+  }, {
+    key: 'onResize',
+    value: function onResize(event) {
+      this._onResize(event);
+      this.renderVisibleItems();
+    }
+  }, {
+    key: 'onScroll',
+    value: function onScroll(event) {
+      this._onScroll(event);
+    }
+  }, {
+    key: '_onResize',
+    value: function _onResize(event) {
+      if (this.listHeightAutoMode) this.listHeight = this.queryListHeight();
+    }
+  }, {
+    key: '_onScroll',
+    value: function _onScroll(event) {
+      this.scrollPositionY = this.$scrollerContainer.scrollTop();
+      this.renderVisibleItems();
     }
   }]);
 

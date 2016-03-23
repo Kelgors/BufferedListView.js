@@ -1,63 +1,71 @@
 class BufferedListView extends Backbone.View {
 
+  /**
+   *
+   * @param {Object} options
+   * @param {String} options.listContainerSelector      - Selector where to append child
+   * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
+   * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
+   * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
+   * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
+   * @param {Array} options.models                      - The list of models to be rendered
+   * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
+  **/
   constructor(options = {}) {
     super(options);
     this.el.__view__ = this;
-    this.scrollerContainerSelector = '#list-container';
-    this.listContainerSelector = '#list-container > .list-display:first';
+
+    this.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
+    this.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
     this.scrollPositionY = 0;
-    this.listHeight = 'auto';
-    this.listItemHeight = 31;
+    this.listHeight = options.listHeight || 'auto';
+    this.listHeightAutoMode = this.listHeight === 'auto';
+    this.listItemHeight = options.listItemHeight;
 
     this.visibleOutboundItemsCount = 2;
 
-    this.scrollEventCallFrames = 4;
-
     this.models = options.models || [];
-    this.viewsPool = new Pool(ItemView, 100);
+    this.viewsPool = new Pool(ItemView, options.maxPoolSize || -1);
     this.viewsMap = new Map();
-    if (this.listHeight === 'auto') {
-      this.waitToBeAttached = true;
+
+    this._onWindowResize = this.onResize.bind(this);
+    $(window).on('resize', this._onWindowResize);
+
+    if (this.listHeightAutoMode) {
       this.once('attach', function () {
-        this.listHeight = this.$listContainer.outerHeight();
+        this.listHeight = this.queryListHeight();
+        this.updateListScrollerHeight();
         this.renderVisibleItems();
       });
     }
   }
 
   destroy() {
-    this.$el.contents().remove();
+    $(window).off('resize', this._onWindowResize);
+    this._onWindowResize = null;
+    if (this.$el) this.$el.contents().remove();
+    if (this.el) this.el.__view__ = null;
     this.models = null;
     this.viewsPool.destroy();
     this.el = this.$el = null;
   }
 
   template() {
-    return '<div id="list-container"><div class="list-content"></div><ul class="list-display"></ul></div>';
+    return '<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>';
   }
 
   render() {
+    // render view
     this.$el.html(this.template());
+    // query elements
     this.$listContainer = this.$(this.listContainerSelector);
     this.$scrollerContainer = this.$(this.scrollerContainerSelector);
+    // set on scroll listener
+    this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
-    let eventCalls = 0;
-    this.$scrollerContainer.on('scroll', () => {
-      this.scrollPositionY = this.$scrollerContainer.scrollTop();
-      //console.log(this.scrollPositionY);
+    if (!this.listHeightAutoMode && this.el.parentNode) {
+      this.updateListScrollerHeight();
       this.renderVisibleItems();
-      // if (++eventCalls % this.scrollEventCallFrames === 0) {
-      // }
-    });
-    if (this.waitToBeAttached && !this.el.parentNode) {
-    } else {
-      setTimeout(() => {
-        if (this.listHeight === 'auto') {
-          this.listHeight = this.queryListHeight();
-          this.updateListContentHeight();
-        }
-        this.renderVisibleItems();
-      }, 1000);
     }
   }
 
@@ -65,29 +73,22 @@ class BufferedListView extends Backbone.View {
     return this.$el.outerHeight();
   }
 
-  updateListContentHeight() {
+  updateListScrollerHeight() {
     this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight);
   }
 
   defineRangeOfModelsVisibles() {
     const listContentHeight = this.models.length * this.listItemHeight;
-    //const listPositionIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
     let modelsIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
-    //console.log('actual index', modelsIndex);
     this.__actualIndex__ = modelsIndex;
     const modelsCount = Math.floor(this.listHeight / this.listItemHeight) + this.visibleOutboundItemsCount * 2;
     modelsIndex = Math.max(0, modelsIndex - this.visibleOutboundItemsCount);
     const modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount + this.visibleOutboundItemsCount);
-    if (this.scrollPositionY > 100) {
-      //debugger;
-    }
     return [ modelsIndex, modelsLength ];
   }
 
   renderVisibleItems() {
     const rangeOfModelsVisibles = this.defineRangeOfModelsVisibles();
-    console.log('scrollPositionY', this.scrollPositionY);
-    console.log('range', rangeOfModelsVisibles);
     const visibleModels = this.models.slice(rangeOfModelsVisibles[0], rangeOfModelsVisibles[1]);
     const views = visibleModels.map((model, index) => {
       const view = this.getView(model, Number(rangeOfModelsVisibles[0]) + Number(index));
@@ -120,7 +121,6 @@ class BufferedListView extends Backbone.View {
   }
 
   removeViews(views) {
-    //console.log('remove %s views', views.length);
     for (let index = 0; index < views.length; index++) {
       this.removeView(views[index]);
     }
@@ -134,7 +134,6 @@ class BufferedListView extends Backbone.View {
   }
 
   addViews(views) {
-    //console.log('add %s views', views.length);
     for (let index = 0; index < views.length; index++) {
       this.addView(views[index], index);
     }
@@ -143,12 +142,7 @@ class BufferedListView extends Backbone.View {
   addView(view, index) {
     const $container = this.$listContainer;
     const $children = $container.children();
-    //const positionTop = this.scrollPositionY + this.listItemHeight * index;
     const positionTop = this.listItemHeight * view.indexInModelList;
-    // console.log('  addViewAt(%s/%s)', index, $children.length);
-    // if ($children.get(index) === view.el) {
-    //   console.log('    pass over');
-    // }
     view.el.style.top = String(positionTop) + 'px';
     if ($children.length <= index) {
       $container.append(view.el);
@@ -166,9 +160,26 @@ class BufferedListView extends Backbone.View {
     } else {
       const viewsToRemove = _.reject(currentViews, function (view) { return views.includes(view); });
       const viewsToAdd = views;
-      //console.log('viewsToRemove', viewsToRemove);
       this.removeViews(viewsToRemove);
       this.addViews(viewsToAdd);
     }
+  }
+
+  onResize(event) {
+    this._onResize(event);
+    this.renderVisibleItems();
+  }
+
+  onScroll(event) {
+    this._onScroll(event);
+  }
+
+  _onResize(event) {
+    if (this.listHeightAutoMode) this.listHeight = this.queryListHeight();
+  }
+
+  _onScroll(event) {
+    this.scrollPositionY = this.$scrollerContainer.scrollTop();
+    this.renderVisibleItems();
   }
 }
