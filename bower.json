@@ -1,23 +1,29 @@
 {
-  "name": "thalys_10_02_2016",
-  "description": "",
-  "main": "index.js",
+  "name": "BufferedListView.js",
+  "description": "A list view to show only visible item views",
+  "main": "dist/index.js",
   "authors": [
-    "Kelgors <matthieuboheas@gmail.com>"
+    "Matthieu BOHEAS <matthieuboheas@gmail.com>"
   ],
-  "license": "ISC",
+  "license": "MIT",
+  "keywords": [
+    "list",
+    "view",
+    "buffer",
+    "visible"
+  ],
+  "homepage": "https://github.com/Kelgors/BufferedListView.js",
   "moduleType": [],
-  "homepage": "",
   "ignore": [
-    "**/.*",
     "node_modules",
     "bower_components",
-    "test",
-    "tests"
+    "index.html",
+    "index2.html"
   ],
   "dependencies": {
+    "backbone.wreqr": "^1.0.0",
     "backbone.marionette": "^2.4.4",
-    "jquery": "^2.2.2",
-    "pool.js": "*"
+    "pool.js": "*",
+    "jquery": "^2.2.2"
   }
 }
