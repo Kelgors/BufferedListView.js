@@ -155,6 +155,7 @@ var BufferedListView = function (_Backbone$View) {
     _this.listHeight = options.listHeight || 'auto';
     _this.listHeightAutoMode = _this.listHeight === 'auto';
     _this.listItemHeight = options.listItemHeight;
+    _this.idModelPropertyName = options.idModelPropertyName || 'id';
 
     _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
@@ -279,14 +280,14 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'getView',
     value: function getView(model, indexInModelList) {
-      var view = this.viewsMap.get(model.id);
+      var view = this.viewsMap.get(model[this.idModelPropertyName]);
       if (!view) {
         view = this.viewsPool.borrows();
         if (!view) debugger;
         view.model = model;
         view.indexInModelList = indexInModelList;
         view.render();
-        this.viewsMap.set(model.id, view);
+        this.viewsMap.set(model[this.idModelPropertyName], view);
       }
       return view;
     }
@@ -300,7 +301,7 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'removeView',
     value: function removeView(view) {
-      this.viewsMap.delete(view.model.id);
+      this.viewsMap.delete(view.model[this.idModelPropertyName]);
       view.model = null;
       view.remove();
       this.viewsPool.returns(view);

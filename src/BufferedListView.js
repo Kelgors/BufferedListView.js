@@ -21,6 +21,7 @@ class BufferedListView extends Backbone.View {
     this.listHeight = options.listHeight || 'auto';
     this.listHeightAutoMode = this.listHeight === 'auto';
     this.listItemHeight = options.listItemHeight;
+    this.idModelPropertyName = options.idModelPropertyName || 'id';
 
     this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
@@ -122,14 +123,14 @@ class BufferedListView extends Backbone.View {
   }
 
   getView(model, indexInModelList) {
-    let view = this.viewsMap.get(model.id);
+    let view = this.viewsMap.get(model[this.idModelPropertyName]);
     if (!view) {
       view = this.viewsPool.borrows();
       if (!view) debugger;
       view.model = model;
       view.indexInModelList = indexInModelList;
       view.render();
-      this.viewsMap.set(model.id, view);
+      this.viewsMap.set(model[this.idModelPropertyName], view);
     }
     return view;
   }
@@ -141,7 +142,7 @@ class BufferedListView extends Backbone.View {
   }
 
   removeView(view) {
-    this.viewsMap.delete(view.model.id);
+    this.viewsMap.delete(view.model[this.idModelPropertyName]);
     view.model = null;
     view.remove();
     this.viewsPool.returns(view);
