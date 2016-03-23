@@ -87,6 +87,7 @@ ol > li:nth-child(even), ul > li:nth-child(even) {
       const count = 30;
       return Array(count+1).join((Math.random().toString(36)+'00000000000000000').slice(2, 18)).slice(0, count);
     }
+    BufferedListView.DEV_MODE = true;
     const view = new BufferedListView({ listItemHeight: 31 });
     view.models = new Array(20000);
     for (let index = 0; index < view.models.length; index++) {

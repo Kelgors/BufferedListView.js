@@ -1,5 +1,7 @@
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -91,6 +93,20 @@ var BufferedListView = function (_Backbone$View) {
       }
     }
   }, {
+    key: 'scrollToIndex',
+    value: function scrollToIndex(index) {
+      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+      var scrollTopPosition = index * this.listItemHeight;
+      if (options.animate) {
+        this.$scrollerContainer.animate({
+          scrollTop: scrollTopPosition
+        }, options.duration || 300);
+      } else {
+        this.$scrollerContainer.scrollTop(scrollTopPosition);
+      }
+    }
+  }, {
     key: 'queryListHeight',
     value: function queryListHeight() {
       return this.$el.outerHeight();
@@ -103,33 +119,42 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'defineRangeOfModelsVisibles',
     value: function defineRangeOfModelsVisibles() {
-      var listContentHeight = this.models.length * this.listItemHeight;
       var modelsIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
-      this.__actualIndex__ = modelsIndex;
-      var modelsCount = Math.floor(this.listHeight / this.listItemHeight) + this.visibleOutboundItemsCount * 2;
-      modelsIndex = Math.max(0, modelsIndex - this.visibleOutboundItemsCount);
-      var modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount + this.visibleOutboundItemsCount);
+      var modelsCount = Math.ceil(this.listHeight / this.listItemHeight);
+      var modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount);
       return [modelsIndex, modelsLength];
     }
   }, {
-    key: 'renderVisibleItems',
-    value: function renderVisibleItems() {
+    key: 'renderItemsRange',
+    value: function renderItemsRange(_ref) {
       var _this2 = this;
 
-      var rangeOfModelsVisibles = this.defineRangeOfModelsVisibles();
-      var visibleModels = this.models.slice(rangeOfModelsVisibles[0], rangeOfModelsVisibles[1]);
-      var views = visibleModels.map(function (model, index) {
-        var view = _this2.getView(model, Number(rangeOfModelsVisibles[0]) + Number(index));
+      var _ref2 = _slicedToArray(_ref, 2);
+
+      var start = _ref2[0];
+      var end = _ref2[1];
+
+      this.__actualIndex__ = start;
+      var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
+      var modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
+      var rangeOfModels = this.models.slice(start, end);
+      var views = rangeOfModels.map(function (model, index) {
+        var view = _this2.getView(model, start + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);
         return view;
       });
       this.renderViews(views);
-      this.renderDebugInfos();
+      if (BufferedListView.DEV_MODE) this.renderDebugInfos();
+    }
+  }, {
+    key: 'renderVisibleItems',
+    value: function renderVisibleItems() {
+      this.renderItemsRange(this.defineRangeOfModelsVisibles());
     }
   }, {
     key: 'renderDebugInfos',
     value: function renderDebugInfos() {
-      $('#debug-container').html('\n  <div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n  <div>Current start index: ' + this.__actualIndex__ + '</div>\n');
+      $('#debug-container').html('<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div><div>Current start index: ' + this.__actualIndex__ + '</div>');
     }
   }, {
     key: 'getView',

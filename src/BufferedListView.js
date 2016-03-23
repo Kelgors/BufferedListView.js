@@ -69,6 +69,17 @@ class BufferedListView extends Backbone.View {
     }
   }
 
+  scrollToIndex(index, options = {}) {
+    const scrollTopPosition = index * this.listItemHeight;
+    if (options.animate) {
+      this.$scrollerContainer.animate({
+        scrollTop: scrollTopPosition
+      }, options.duration || 300);
+    } else {
+      this.$scrollerContainer.scrollTop(scrollTopPosition);
+    }
+  }
+
   queryListHeight() {
     return this.$el.outerHeight();
   }
@@ -78,33 +89,32 @@ class BufferedListView extends Backbone.View {
   }
 
   defineRangeOfModelsVisibles() {
-    const listContentHeight = this.models.length * this.listItemHeight;
     let modelsIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
-    this.__actualIndex__ = modelsIndex;
-    const modelsCount = Math.floor(this.listHeight / this.listItemHeight) + this.visibleOutboundItemsCount * 2;
-    modelsIndex = Math.max(0, modelsIndex - this.visibleOutboundItemsCount);
-    const modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount + this.visibleOutboundItemsCount);
+    const modelsCount = Math.ceil(this.listHeight / this.listItemHeight);
+    const modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount);
     return [ modelsIndex, modelsLength ];
   }
 
-  renderVisibleItems() {
-    const rangeOfModelsVisibles = this.defineRangeOfModelsVisibles();
-    const visibleModels = this.models.slice(rangeOfModelsVisibles[0], rangeOfModelsVisibles[1]);
-    const views = visibleModels.map((model, index) => {
-      const view = this.getView(model, Number(rangeOfModelsVisibles[0]) + Number(index));
+  renderItemsRange([ start, end ]) {
+    this.__actualIndex__ = start;
+    const modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
+    const modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount)
+    const rangeOfModels = this.models.slice(start, end);
+    const views = rangeOfModels.map((model, index) => {
+      const view = this.getView(model, start + Number(index));
       view.el.setAttribute('data-index', view.indexInModelList);
       return view;
     });
     this.renderViews(views);
-    this.renderDebugInfos();
+    if (BufferedListView.DEV_MODE) this.renderDebugInfos();
+  }
+
+  renderVisibleItems() {
+    this.renderItemsRange(this.defineRangeOfModelsVisibles());
   }
 
   renderDebugInfos() {
-    $('#debug-container')
-      .html(`
-  <div>Actual pool usage: ${this.viewsPool.getCountBorrowed()} / ${this.viewsPool.getCountAvailables()}</div>
-  <div>Current start index: ${this.__actualIndex__}</div>
-`)
+    $('#debug-container').html(`<div>Actual pool usage: ${this.viewsPool.getCountBorrowed()} / ${this.viewsPool.getCountAvailables()}</div><div>Current start index: ${this.__actualIndex__}</div>`)
   }
 
   getView(model, indexInModelList) {
