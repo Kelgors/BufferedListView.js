@@ -23,7 +23,7 @@
   "dependencies": {
     "backbone.wreqr": "^1.0.0",
     "backbone.marionette": "^2.4.4",
-    "pool.js": "*",
+    "pool.js": "^1.0.1",
     "jquery": "^2.2.2"
   }
 }
