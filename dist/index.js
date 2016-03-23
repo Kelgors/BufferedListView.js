@@ -156,7 +156,7 @@ var BufferedListView = function (_Backbone$View) {
     _this.listHeightAutoMode = _this.listHeight === 'auto';
     _this.listItemHeight = options.listItemHeight;
 
-    _this.visibleOutboundItemsCount = 2;
+    _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     _this.models = options.models || [];
     _this.viewsPool = new Pool(options.ItemContructor || _this.getItemConstructor(), options.maxPoolSize || -1);

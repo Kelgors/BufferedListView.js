@@ -1,5 +1,6 @@
 {
   "name": "BufferedListView.js",
+  "version": "1.0.0",
   "description": "A list view to show only visible item views",
   "main": "dist/index.js",
   "authors": [
