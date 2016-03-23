@@ -22,10 +22,10 @@ class BufferedListView extends Backbone.View {
     this.listHeightAutoMode = this.listHeight === 'auto';
     this.listItemHeight = options.listItemHeight;
 
-    this.visibleOutboundItemsCount = 2;
+    this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     this.models = options.models || [];
-    this.viewsPool = new Pool(ItemView, options.maxPoolSize || -1);
+    this.viewsPool = new Pool(options.ItemContructor || this.getItemConstructor(), options.maxPoolSize || -1);
     this.viewsMap = new Map();
 
     this._onWindowResize = this.onResize.bind(this);
@@ -48,6 +48,10 @@ class BufferedListView extends Backbone.View {
     this.models = null;
     this.viewsPool.destroy();
     this.el = this.$el = null;
+  }
+
+  getItemConstructor() {
+    return BufferedListItemView;
   }
 
   template() {

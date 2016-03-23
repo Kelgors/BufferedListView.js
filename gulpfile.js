@@ -5,10 +5,10 @@ const concat = require('gulp-concat');
 const babel = require('gulp-babel');
 
 gulp.task('build:js', function () {
-  return gulp.src('src/*.js')
+  return gulp.src([ 'bower_components/pool.js/src/Pool.js', 'src/*.js'])
     .pipe(babel())
     .pipe(concat('index.js'))
-    .pipe(gulp.dest('.'));
+    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('watch:js', function () {
