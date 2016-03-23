@@ -36,7 +36,7 @@ ol > li:nth-child(even), ul > li:nth-child(even) {
 }*/
 #c1 {
   width: 200px;
-  height: 400px;
+  height: 100%;
   position: absolute;
   top: 0;
   left: 0;
@@ -46,20 +46,20 @@ ol > li:nth-child(even), ul > li:nth-child(even) {
   margin: auto;
   border: 1px solid black;
 }
-#list-container {
+.list-container {
   position: relative;
   overflow-y: auto;
 }
-#list-container > .list-content {
+.list-container > .list-content {
 
 }
-#list-container > .list-display > li {
+.list-container > .list-display > li {
   position: absolute;
   left: 0;
   right: 0;
   margin: 0 auto;
 }
-#c1 > div, #c1 > div > #list-container {
+#c1 > div, #c1 > div > .list-container {
   height: 100%;
 }
 
@@ -87,14 +87,14 @@ ol > li:nth-child(even), ul > li:nth-child(even) {
       const count = 30;
       return Array(count+1).join((Math.random().toString(36)+'00000000000000000').slice(2, 18)).slice(0, count);
     }
-    const view = new BufferedListView();
-    view.models = new Array(3200);
+    const view = new BufferedListView({ listItemHeight: 31 });
+    view.models = new Array(20000);
     for (let index = 0; index < view.models.length; index++) {
       view.models[index] = { id: _.uniqueId(), content: String(index) };
     }
-    $('#c1').append(view.el);
-
     view.render();
+    $('#c1').append(view.el);
+    view.trigger('attach');
 
   </script>
 </body>
