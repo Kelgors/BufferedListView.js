@@ -1,4 +1,9 @@
-class BufferedListView extends Backbone.View {
+import $ from 'jquery';
+import { View } from 'backbone';
+import Pool from 'Pool';
+import
+
+export default class BufferedListView extends View {
 
   /**
    *
@@ -26,7 +31,11 @@ class BufferedListView extends Backbone.View {
     this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     this.models = options.models || [];
-    this.viewsPool = new Pool(options.ItemContructor || this.getItemConstructor(), options.maxPoolSize || -1);
+    const ItemConstructor = options.ItemContructor || this.getItemConstructor();
+    this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
+      clearMethodName: ItemConstructor.CLEAR_METHOD,
+      destroyMethodName: ItemConstructor.DESTROY_METHOD
+    });
     this.viewsMap = new Map();
 
     this._onWindowResize = this.onResize.bind(this);
@@ -51,14 +60,27 @@ class BufferedListView extends Backbone.View {
     this.el = this.$el = null;
   }
 
+  /**
+   * Returns the ItemView used to render each models
+   * @returns {Function}
+  **/
   getItemConstructor() {
     return BufferedListItemView;
   }
 
+/* Rendering related methods */
+
+  /**
+   * Returns the content of a empty BufferedListView
+   * @returns {String}
+  **/
   template() {
     return '<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>';
   }
 
+  /**
+   * Put the value returned by template method listen all events necessary
+  **/
   render() {
     // render view
     this.$el.html(this.template());
@@ -74,6 +96,12 @@ class BufferedListView extends Backbone.View {
     }
   }
 
+  /**
+   * Scroll to the index of a model
+   * @param {Number} index - The index of the model in models array
+   * @param {?Object} options
+   * @param {Object} options.animate - scroll with animation
+  **/
   scrollToIndex(index, options = {}) {
     const scrollTopPosition = index * this.listItemHeight;
     if (options.animate) {
@@ -85,28 +113,42 @@ class BufferedListView extends Backbone.View {
     }
   }
 
+  /**
+   * Calculate the total height of this view
+  **/
   queryListHeight() {
     return this.$el.outerHeight();
   }
 
+  /**
+   * Update the scroller height. It results that the list scrolling is adapted to its content
+  **/
   updateListScrollerHeight() {
     this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight);
   }
 
+  /**
+   * Define with scrollPositionY, listItemHeight and listHeight the range of models which should be visible
+   * @returns {Number[]} [ startIndex, endIndex ]
+  **/
   defineRangeOfModelsVisibles() {
-    let modelsIndex = Math.floor(this.scrollPositionY / this.listItemHeight);
-    const modelsCount = Math.ceil(this.listHeight / this.listItemHeight);
-    const modelsLength = Math.min(this.models.length - 1, modelsIndex + modelsCount);
-    return [ modelsIndex, modelsLength ];
+    const start = Math.floor(this.scrollPositionY / this.listItemHeight);
+    const length = Math.ceil(this.listHeight / this.listItemHeight);
+    const end = Math.min(this.models.length - 1, start + length);
+    return [ start, end ];
   }
 
+  /**
+   *
+   * @param {Number[]} tuple - [ startIndex, endIndex ]
+  **/
   renderItemsRange([ start, end ]) {
     this.__actualIndex__ = start;
     const modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
-    const modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount)
-    const rangeOfModels = this.models.slice(start, end);
+    const modelsEnd = Math.min(this.models.length - 1, end + this.visibleOutboundItemsCount);
+    const rangeOfModels = this.models.slice(modelsStart, modelsEnd);
     const views = rangeOfModels.map((model, index) => {
-      const view = this.getView(model, start + Number(index));
+      const view = this.getView(model, modelsStart + Number(index));
       view.el.setAttribute('data-index', view.indexInModelList);
       return view;
     });
@@ -114,19 +156,44 @@ class BufferedListView extends Backbone.View {
     if (BufferedListView.DEV_MODE) this.renderDebugInfos();
   }
 
+  /**
+   * Render items that should be currently visible
+  **/
   renderVisibleItems() {
     this.renderItemsRange(this.defineRangeOfModelsVisibles());
   }
 
-  renderDebugInfos() {
-    $('#debug-container').html(`<div>Actual pool usage: ${this.viewsPool.getCountBorrowed()} / ${this.viewsPool.getCountAvailables()}</div><div>Current start index: ${this.__actualIndex__}</div>`)
+  /**
+   * Render the given array of views into this list
+   * @method
+   * @param {any[]} views
+  **/
+  renderViews(views) {
+    const currentViews = this.$listContainer.children().toArray().map(function (node) { return node.__view__; });
+    if (currentViews.length === 0) {
+      this.addViews(views);
+    } else {
+      const viewsToRemove = _.reject(currentViews, function (view) { return views.includes(view); });
+      const viewsToAdd = views;
+      this.removeViews(viewsToRemove);
+      this.addViews(viewsToAdd);
+    }
   }
 
+
+/* view list management */
+
+  /**
+   * Get a view from the views pool
+   * @param {Object} model
+   * @param {Number} indexInModelList
+   * @returns {any}
+  **/
   getView(model, indexInModelList) {
     let view = this.viewsMap.get(model[this.idModelPropertyName]);
     if (!view) {
       view = this.viewsPool.borrows();
-      if (!view) debugger;
+      if (!view) throw new Error(`No views availables. Actually borrowed: ${ this.viewsPool.getCountBorrowed() }`);
       view.model = model;
       view.indexInModelList = indexInModelList;
       view.render();
@@ -135,25 +202,39 @@ class BufferedListView extends Backbone.View {
     return view;
   }
 
+  /**
+   * Remove the given views list from this view
+   * @param {any[]} views
+  **/
   removeViews(views) {
     for (let index = 0; index < views.length; index++) {
       this.removeView(views[index]);
     }
   }
 
+  /**
+   * Remove the given view from this view
+   * @param {any} view
+  **/
   removeView(view) {
     this.viewsMap.delete(view.model[this.idModelPropertyName]);
-    view.model = null;
-    view.remove();
     this.viewsPool.returns(view);
   }
 
+  /**
+   * Add the given views list from this view
+   * @param {any[]} views
+  **/
   addViews(views) {
     for (let index = 0; index < views.length; index++) {
       this.addView(views[index], index);
     }
   }
 
+  /**
+   * Add the given view from this view
+   * @param {any} view
+  **/
   addView(view, index) {
     const $container = this.$listContainer;
     const $children = $container.children();
@@ -168,17 +249,7 @@ class BufferedListView extends Backbone.View {
     }
   }
 
-  renderViews(views) {
-    const currentViews = this.$listContainer.children().toArray().map(function (node) { return node.__view__; });
-    if (currentViews.length === 0) {
-      this.addViews(views);
-    } else {
-      const viewsToRemove = _.reject(currentViews, function (view) { return views.includes(view); });
-      const viewsToAdd = views;
-      this.removeViews(viewsToRemove);
-      this.addViews(viewsToAdd);
-    }
-  }
+/* Events */
 
   onResize(event) {
     this._onResize(event);
@@ -196,5 +267,16 @@ class BufferedListView extends Backbone.View {
   _onScroll(event) {
     this.scrollPositionY = this.$scrollerContainer.scrollTop();
     this.renderVisibleItems();
+  }
+
+/* Debug */
+
+  renderDebugInfos() {
+    const [ startIndex, endIndex ] = this.defineRangeOfModelsVisibles();
+    $('#debug-container').html(`
+<div>Actual pool usage: ${this.viewsPool.getCountBorrowed()} / ${this.viewsPool.getCountAvailables()}</div>
+<div>Visible range: (${startIndex}, ${endIndex})</div>
+<div>Visible models: (${Math.max(0, startIndex - this.visibleOutboundItemsCount)}, ${Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount)})
+<div>Current start index: ${this.__actualIndex__}</div>`);
   }
 }

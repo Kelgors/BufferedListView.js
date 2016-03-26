@@ -1,9 +1,24 @@
-class BufferedListItemView {
+import $ from 'jquery';
+
+export default class BufferedListItemView {
   constructor() {
     this.$el = $(this.el = document.createElement('li'));
     this.$el.addClass('item-view');
     this.$ = this.$el.find.bind(this.$el);
     this.el.__view__ = this;
+  }
+
+  destroy() {
+    if (this.el) delete this.el.__view__;
+    delete this.$;
+    delete this.$el;
+    delete this.el;
+  }
+
+  clear() {
+    this.remove();
+    this.el.innerHTML = '';
+    this.model = null;
   }
 
   remove() {
@@ -18,3 +33,6 @@ class BufferedListItemView {
     this.$el.html(this.template());
   }
 }
+
+BufferedListItemView.CLEAR_METHOD = 'clear';
+BufferedListItemView.DESTROY_METHOD = 'destroy';
