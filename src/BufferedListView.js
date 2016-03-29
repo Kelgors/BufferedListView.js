@@ -1,9 +1,9 @@
 import $ from 'jquery';
-import { View } from 'backbone';
+import Backbone from 'backbone';
 import Pool from 'Pool';
-import
+import BufferedListItemView from 'BufferedListItemView';
 
-export default class BufferedListView extends View {
+export default class BufferedListView extends Backbone.View {
 
   /**
    *
@@ -31,7 +31,7 @@ export default class BufferedListView extends View {
     this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     this.models = options.models || [];
-    const ItemConstructor = options.ItemContructor || this.getItemConstructor();
+    const ItemConstructor = options.ItemConstructor || this.getItemConstructor();
     this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
       clearMethodName: ItemConstructor.CLEAR_METHOD,
       destroyMethodName: ItemConstructor.DESTROY_METHOD

@@ -212,7 +212,7 @@ var BufferedListView = function (_Backbone$View) {
     _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     _this.models = options.models || [];
-    var ItemConstructor = options.ItemContructor || _this.getItemConstructor();
+    var ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
     _this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
       clearMethodName: ItemConstructor.CLEAR_METHOD,
       destroyMethodName: ItemConstructor.DESTROY_METHOD
@@ -364,7 +364,6 @@ var BufferedListView = function (_Backbone$View) {
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
       var modelsEnd = Math.min(this.models.length - 1, end + this.visibleOutboundItemsCount);
       var rangeOfModels = this.models.slice(modelsStart, modelsEnd);
-      //if (this.scrollPositionY > 1000) debugger;
       var views = rangeOfModels.map(function (model, index) {
         var view = _this2.getView(model, modelsStart + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);
