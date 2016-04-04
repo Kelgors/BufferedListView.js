@@ -6,8 +6,11 @@ const replace = require('gulp-replace');
 const uglify = require('gulp-uglifyjs');
 const concat = require('gulp-concat');
 
+const connect = require('gulp-connect');
+
 const moduleTypes = [ 'amd', 'systemjs', 'commonjs' ];
 const sourceFiles = [ 'bower_components/pool.js/src/Pool.js', 'src/*.js'];
+const outputFileName = 'buffered-list-view';
 
 const defaultConfig = {
   moduleIds: false
@@ -15,7 +18,7 @@ const defaultConfig = {
 
 const modulesBabelConfig = mergeObjectDeeply({
   moduleIds: true,
-  plugins: [ "transform-runtime" ]
+  plugins: [  ]
 });
 
 function mergeObjectDeeply(a, b) {
@@ -41,14 +44,14 @@ moduleTypes.forEach((type) => {
   gulp.task(`build:js:${type}`, () => {
     return gulp.src(sourceFiles)
       .pipe(babel(config))
-      .pipe(concat(`index.${type}.js`))
+      .pipe(concat(`${outputFileName}.${type}.js`))
       .pipe(gulp.dest('dist'));
   });
 
   gulp.task(`build:js:${type}:min`, function () {
     return gulp.src(sourceFiles)
       .pipe(babel(config))
-      .pipe(concat(`index.${type}.min.js`))
+      .pipe(concat(`${outputFileName}.${type}.min.js`))
       .pipe(uglify())
       .pipe(gulp.dest('dist'));
   });
@@ -61,7 +64,7 @@ gulp.task('build:js:globals', function () {
   return gulp.src(sourceFiles)
     .pipe(replace(/import [\{\[]?.*[\}\]]? from .*;\n/g, ''))
     .pipe(replace(/export (default )?/g, ''))
-    .pipe(concat(`index.js`))
+    .pipe(concat(`${outputFileName}.js`))
     .pipe(babel(defaultConfig))
     .pipe(gulp.dest('dist'));
 });
@@ -70,17 +73,35 @@ gulp.task('build:js:globals:min', () => {
   return gulp.src(sourceFiles)
     .pipe(replace(/import [\{\[]?.*[\}\]]? from .*;\n/g, ''))
     .pipe(replace(/export (default )?/g, ''))
-    .pipe(concat(`index.js`))
+    .pipe(concat(`${outputFileName}.js`))
     .pipe(babel(defaultConfig))
     .pipe(uglify())
-    .pipe(concat(`index.min.js`))
     .pipe(gulp.dest('dist'));
 });
 
 gulp.task('build:js', buildJsTasks);
 
 gulp.task('watch:js', function () {
-  gulp.watch('src/*.js', [ 'build:js:globals' ]);
+  return gulp.watch('src/*.js', [ 'build:js:globals' ]);
+});
+
+// Server
+
+
+gulp.task('serve:website', function () {
+  return connect.server({
+    root: 'website',
+    livereload: true,
+    port: 3000
+  });
+});
+
+gulp.task('serve:example:countries', function () {
+  return connect.server({
+    root: [ 'dist', 'bower_components', 'examples/shared', 'examples/country_list' ],
+    port: 8000,
+    livereload: false
+  });
 });
 
 gulp.task('default', [ 'watch:js' ]);

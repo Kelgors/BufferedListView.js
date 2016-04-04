@@ -2,8 +2,13 @@ import $ from 'jquery';
 import Backbone from 'backbone';
 import Pool from 'Pool';
 import BufferedListItemView from 'BufferedListItemView';
+import { createConstantArray } from 'arrays';
 
 export default class BufferedListView extends Backbone.View {
+
+  get isAttached() {
+    return this.el && this.el.parentNode;
+  }
 
   /**
    *
@@ -19,7 +24,12 @@ export default class BufferedListView extends Backbone.View {
   constructor(options = {}) {
     super(options);
     this.el.__view__ = this;
+    Object.defineProperty(this, '_currentVisibleRange', {
+      configurable: true, writable: false,
+      value: createConstantArray(0, 0)
+    });
 
+    this.isRendered = false;
     this.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
     this.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
     this.scrollPositionY = 0;
@@ -44,20 +54,23 @@ export default class BufferedListView extends Backbone.View {
     if (this.listHeightAutoMode) {
       this.once('attach', function () {
         this.listHeight = this.queryListHeight();
-        this.updateListScrollerHeight();
-        this.renderVisibleItems();
+        if (this.isRendered) {
+          this.updateListScrollerHeight();
+          this.renderVisibleItems();
+        }
       });
     }
   }
 
   destroy() {
     $(window).off('resize', this._onWindowResize);
-    this._onWindowResize = null;
-    if (this.$el) this.$el.contents().remove();
-    if (this.el) this.el.__view__ = null;
-    this.models = null;
     this.viewsPool.destroy();
-    this.el = this.$el = null;
+    if (this.el) delete this.el.__view__;
+    if (this.$el) this.remove();
+    delete this._onWindowResize;
+    delete this.models;
+    delete this.el;
+    delete this.$el;
   }
 
   /**
@@ -71,7 +84,7 @@ export default class BufferedListView extends Backbone.View {
 /* Rendering related methods */
 
   /**
-   * Returns the content of a empty BufferedListView
+   * Returns the html content of a empty BufferedListView
    * @returns {String}
   **/
   template() {
@@ -79,18 +92,19 @@ export default class BufferedListView extends Backbone.View {
   }
 
   /**
-   * Put the value returned by template method listen all events necessary
+   * Put the value returned by template method and listen all events necessary
   **/
   render() {
     // render view
     this.$el.html(this.template());
+    this.isRendered = true;
     // query elements
     this.$listContainer = this.$(this.listContainerSelector);
     this.$scrollerContainer = this.$(this.scrollerContainerSelector);
     // set on scroll listener
     this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
-    if (!this.listHeightAutoMode && this.el.parentNode) {
+    if (this.isAttached) {
       this.updateListScrollerHeight();
       this.renderVisibleItems();
     }
@@ -143,7 +157,7 @@ export default class BufferedListView extends Backbone.View {
    * @param {Number[]} tuple - [ startIndex, endIndex ]
   **/
   renderItemsRange([ start, end ]) {
-    this.__actualIndex__ = start;
+    if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
     const modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
     const modelsEnd = Math.min(this.models.length - 1, end + this.visibleOutboundItemsCount);
     const rangeOfModels = this.models.slice(modelsStart, modelsEnd);
@@ -153,6 +167,10 @@ export default class BufferedListView extends Backbone.View {
       return view;
     });
     this.renderViews(views);
+    Object.defineProperty(this, '_currentVisibleRange', {
+      configurable: true, writable: false,
+      value: createConstantArray(start, end)
+    });
     if (BufferedListView.DEV_MODE) this.renderDebugInfos();
   }
 
@@ -191,6 +209,12 @@ export default class BufferedListView extends Backbone.View {
   **/
   getView(model, indexInModelList) {
     let view = this.viewsMap.get(model[this.idModelPropertyName]);
+    if (typeof this.idModelPropertyName === 'undefined') {
+      throw new Error('BufferedListView#idModelPropertyName must be defined');
+    }
+    if (typeof model[this.idModelPropertyName] === 'undefined') {
+      throw new Error(`The model.${this.idModelPropertyName} is undefined. There is no chance to show more than one view.`);
+    }
     if (!view) {
       view = this.viewsPool.borrows();
       if (!view) throw new Error(`No views availables. Actually borrowed: ${ this.viewsPool.getCountBorrowed() }`);
@@ -260,6 +284,7 @@ export default class BufferedListView extends Backbone.View {
     this._onScroll(event);
   }
 
+  /* Class behavior dependant events */
   _onResize(event) {
     if (this.listHeightAutoMode) this.listHeight = this.queryListHeight();
   }
@@ -276,7 +301,6 @@ export default class BufferedListView extends Backbone.View {
     $('#debug-container').html(`
 <div>Actual pool usage: ${this.viewsPool.getCountBorrowed()} / ${this.viewsPool.getCountAvailables()}</div>
 <div>Visible range: (${startIndex}, ${endIndex})</div>
-<div>Visible models: (${Math.max(0, startIndex - this.visibleOutboundItemsCount)}, ${Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount)})
-<div>Current start index: ${this.__actualIndex__}</div>`);
+<div>Visible models: (${Math.max(0, startIndex - this.visibleOutboundItemsCount)}, ${Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount)})`);
   }
 }

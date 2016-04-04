@@ -2,7 +2,7 @@
   "name": "buffered-list-view.js",
   "version": "1.0.1",
   "description": "A list view to show only visible item views",
-  "main": "dist/index.js",
+  "main": "dist/buffered-list-view.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -32,6 +32,7 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.0",
+    "gulp-connect": "^3.2.2",
     "gulp-minifier": "^0.1.4",
     "gulp-replace": "^0.5.4",
     "gulp-uglifyjs": "^0.6.2"

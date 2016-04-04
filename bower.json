@@ -26,5 +26,9 @@
     "backbone.marionette": "^2.4.4",
     "pool.js": "master",
     "jquery": "^2.2.2"
+  },
+  "devDependencies": {
+    "requirejs": "requirejs-bower#^2.2.0",
+    "babel-polyfill": "^0.0.1"
   }
 }

@@ -9,7 +9,9 @@ export default class BufferedListItemView {
   }
 
   destroy() {
+    if (this.$el) this.remove();
     if (this.el) delete this.el.__view__;
+    delete this.model;
     delete this.$;
     delete this.$el;
     delete this.el;

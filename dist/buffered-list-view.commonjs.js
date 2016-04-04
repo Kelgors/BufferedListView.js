@@ -1,12 +1,10 @@
 'use strict';
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -50,7 +48,7 @@ var Pool = function () {
   }, {
     key: '_destroyChildren',
     value: function _destroyChildren(arrayOfObjects) {
-      var methodName = this.objectDestroyMethodName || this.clearMethodName;
+      var methodName = this.objectDestroyMethodName || this.objectClearMethodName;
       if (!methodName) {
         // just empty it
         arrayOfObjects.splice(0, arrayOfObjects.length);
@@ -129,11 +127,28 @@ var Pool = function () {
   return Pool;
 }();
 
+exports.default = Pool;
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _jquery = require('jquery');
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var BufferedListItemView = function () {
   function BufferedListItemView() {
     _classCallCheck(this, BufferedListItemView);
 
-    this.$el = $(this.el = document.createElement('li'));
+    this.$el = (0, _jquery2.default)(this.el = document.createElement('li'));
     this.$el.addClass('item-view');
     this.$ = this.$el.find.bind(this.$el);
     this.el.__view__ = this;
@@ -142,7 +157,9 @@ var BufferedListItemView = function () {
   _createClass(BufferedListItemView, [{
     key: 'destroy',
     value: function destroy() {
+      if (this.$el) this.remove();
       if (this.el) delete this.el.__view__;
+      delete this.model;
       delete this.$;
       delete this.$el;
       delete this.el;
@@ -174,23 +191,67 @@ var BufferedListItemView = function () {
   return BufferedListItemView;
 }();
 
+exports.default = BufferedListItemView;
+
+
 BufferedListItemView.CLEAR_METHOD = 'clear';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _jquery = require('jquery');
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _backbone = require('backbone');
+
+var _backbone2 = _interopRequireDefault(_backbone);
+
+var _Pool = require('Pool');
+
+var _Pool2 = _interopRequireDefault(_Pool);
+
+var _BufferedListItemView = require('BufferedListItemView');
+
+var _BufferedListItemView2 = _interopRequireDefault(_BufferedListItemView);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var BufferedListView = function (_Backbone$View) {
   _inherits(BufferedListView, _Backbone$View);
 
-  /**
-   *
-   * @param {Object} options
-   * @param {String} options.listContainerSelector      - Selector where to append child
-   * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
-   * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
-   * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
-   * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
-   * @param {Array} options.models                      - The list of models to be rendered
-   * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
-  **/
+  _createClass(BufferedListView, [{
+    key: 'isAttached',
+    get: function get() {
+      return this.el && this.el.parentNode;
+    }
+
+    /**
+     *
+     * @param {Object} options
+     * @param {String} options.listContainerSelector      - Selector where to append child
+     * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
+     * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
+     * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
+     * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
+     * @param {Array} options.models                      - The list of models to be rendered
+     * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
+    **/
+
+  }]);
 
   function BufferedListView() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -201,6 +262,7 @@ var BufferedListView = function (_Backbone$View) {
 
     _this.el.__view__ = _this;
 
+    _this.isRendered = false;
     _this.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
     _this.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
     _this.scrollPositionY = 0;
@@ -213,20 +275,22 @@ var BufferedListView = function (_Backbone$View) {
 
     _this.models = options.models || [];
     var ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
-    _this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
+    _this.viewsPool = new _Pool2.default(ItemConstructor, options.maxPoolSize || -1, {
       clearMethodName: ItemConstructor.CLEAR_METHOD,
       destroyMethodName: ItemConstructor.DESTROY_METHOD
     });
     _this.viewsMap = new Map();
 
     _this._onWindowResize = _this.onResize.bind(_this);
-    $(window).on('resize', _this._onWindowResize);
+    (0, _jquery2.default)(window).on('resize', _this._onWindowResize);
 
     if (_this.listHeightAutoMode) {
       _this.once('attach', function () {
         this.listHeight = this.queryListHeight();
-        this.updateListScrollerHeight();
-        this.renderVisibleItems();
+        if (this.isRendered) {
+          this.updateListScrollerHeight();
+          this.renderVisibleItems();
+        }
       });
     }
     return _this;
@@ -235,13 +299,14 @@ var BufferedListView = function (_Backbone$View) {
   _createClass(BufferedListView, [{
     key: 'destroy',
     value: function destroy() {
-      $(window).off('resize', this._onWindowResize);
-      this._onWindowResize = null;
-      if (this.$el) this.$el.contents().remove();
-      if (this.el) this.el.__view__ = null;
-      this.models = null;
+      (0, _jquery2.default)(window).off('resize', this._onWindowResize);
       this.viewsPool.destroy();
-      this.el = this.$el = null;
+      if (this.el) delete this.el.__view__;
+      if (this.$el) this.remove();
+      delete this._onWindowResize;
+      delete this.models;
+      delete this.el;
+      delete this.$el;
     }
 
     /**
@@ -252,7 +317,7 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'getItemConstructor',
     value: function getItemConstructor() {
-      return BufferedListItemView;
+      return _BufferedListItemView2.default;
     }
 
     /* Rendering related methods */
@@ -277,13 +342,14 @@ var BufferedListView = function (_Backbone$View) {
     value: function render() {
       // render view
       this.$el.html(this.template());
+      this.isRendered = true;
       // query elements
       this.$listContainer = this.$(this.listContainerSelector);
       this.$scrollerContainer = this.$(this.scrollerContainerSelector);
       // set on scroll listener
       this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
-      if (!this.listHeightAutoMode && this.el.parentNode) {
+      if (this.isAttached) {
         this.updateListScrollerHeight();
         this.renderVisibleItems();
       }
@@ -352,13 +418,13 @@ var BufferedListView = function (_Backbone$View) {
 
   }, {
     key: 'renderItemsRange',
-    value: function renderItemsRange(_ref2) {
+    value: function renderItemsRange(_ref) {
       var _this2 = this;
 
-      var _ref3 = _slicedToArray(_ref2, 2);
+      var _ref2 = _slicedToArray(_ref, 2);
 
-      var start = _ref3[0];
-      var end = _ref3[1];
+      var start = _ref2[0];
+      var end = _ref2[1];
 
       this.__actualIndex__ = start;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
@@ -420,6 +486,12 @@ var BufferedListView = function (_Backbone$View) {
     key: 'getView',
     value: function getView(model, indexInModelList) {
       var view = this.viewsMap.get(model[this.idModelPropertyName]);
+      if (typeof this.idModelPropertyName === 'undefined') {
+        throw new Error('BufferedListView#idModelPropertyName must be defined');
+      }
+      if (typeof model[this.idModelPropertyName] === 'undefined') {
+        throw new Error('The model.' + this.idModelPropertyName + ' is undefined. There is no chance to show more than one view.');
+      }
       if (!view) {
         view = this.viewsPool.borrows();
         if (!view) throw new Error('No views availables. Actually borrowed: ' + this.viewsPool.getCountBorrowed());
@@ -486,7 +558,7 @@ var BufferedListView = function (_Backbone$View) {
       } else if (index === 0) {
         $container.prepend(view.el);
       } else {
-        $($container.children().get(index)).after(view.el);
+        (0, _jquery2.default)($container.children().get(index)).after(view.el);
       }
     }
 
@@ -527,9 +599,11 @@ var BufferedListView = function (_Backbone$View) {
       var startIndex = _defineRangeOfModelsV2[0];
       var endIndex = _defineRangeOfModelsV2[1];
 
-      $('#debug-container').html('\n<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')\n<div>Current start index: ' + this.__actualIndex__ + '</div>');
+      (0, _jquery2.default)('#debug-container').html('\n<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')\n<div>Current start index: ' + this.__actualIndex__ + '</div>');
     }
   }]);
 
   return BufferedListView;
-}(Backbone.View);
+}(_backbone2.default.View);
+
+exports.default = BufferedListView;
