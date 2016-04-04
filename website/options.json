@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Country list",
+    "description": "Quite nice but not impressive",
+    "style": "country_list/list-style.css",
+    "data": "country_list/data.json",
+    "ListConstructor": "country_list/CountryList"
+  }
+]

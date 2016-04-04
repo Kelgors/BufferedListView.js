@@ -1,0 +1,20 @@
+html, body {
+  padding: 0;
+  margin: 0;
+  font-size: 12px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.pushed-part {
+  box-shadow: 1px 1px 6px #cdcdcd inset;
+  padding: 10px 0;
+}
+
+#example-title, #example-subtitle {
+  font-size: 1.3em;
+  margin: 5px 0;
+  text-align: center;
+}
+#example-subtitle {
+  font-size: 1.2em;
+}

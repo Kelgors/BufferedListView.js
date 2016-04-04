@@ -1,0 +1,36 @@
+{
+  "name": "buffered-list-view.js-website",
+  "version": "1.0.0",
+  "description": "A list view to show only visible item views",
+  "main": "dist/index.js",
+  "private": true,
+  "authors": [
+    "Matthieu BOHEAS <matthieuboheas@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "list",
+    "view",
+    "buffer",
+    "visible"
+  ],
+  "homepage": "https://github.com/Kelgors/BufferedListView.js",
+  "moduleType": [],
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "_index.html",
+    "_index2.html",
+    "website"
+  ],
+  "dependencies": {
+    "backbone.wreqr": "^1.0.0",
+    "backbone.marionette": "^2.4.4",
+    "pool.js": "master",
+    "jquery": "^2.2.2"
+  },
+  "devDependencies": {
+    "requirejs": "requirejs-bower#^2.2.0",
+    "babel-polyfill": "^0.0.1"
+  }
+}
