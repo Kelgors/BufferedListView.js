@@ -207,34 +207,38 @@ var BufferedListView = function (_Backbone$View) {
 
     _classCallCheck(this, BufferedListView);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
+    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
 
-    _this.el.__view__ = _this;
+    _this2.el.__view__ = _this2;
+    Object.defineProperty(_this2, '_currentVisibleRange', {
+      configurable: true, writable: false,
+      value: createConstantArray(0, 0)
+    });
 
-    _this.isRendered = false;
-    _this.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
-    _this.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
-    _this.scrollPositionY = 0;
-    _this.listHeight = options.listHeight || 'auto';
-    _this.listHeightAutoMode = _this.listHeight === 'auto';
-    _this.listItemHeight = options.listItemHeight;
-    _this.idModelPropertyName = options.idModelPropertyName || 'id';
+    _this2.isRendered = false;
+    _this2.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
+    _this2.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
+    _this2.scrollPositionY = 0;
+    _this2.listHeight = options.listHeight || 'auto';
+    _this2.listHeightAutoMode = _this2.listHeight === 'auto';
+    _this2.listItemHeight = options.listItemHeight;
+    _this2.idModelPropertyName = options.idModelPropertyName || 'id';
 
-    _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
+    _this2.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
-    _this.models = options.models || [];
-    var ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
-    _this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
+    _this2.models = options.models || [];
+    var ItemConstructor = options.ItemConstructor || _this2.getItemConstructor();
+    _this2.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
       clearMethodName: ItemConstructor.CLEAR_METHOD,
       destroyMethodName: ItemConstructor.DESTROY_METHOD
     });
-    _this.viewsMap = new Map();
+    _this2.viewsMap = new Map();
 
-    _this._onWindowResize = _this.onResize.bind(_this);
-    $(window).on('resize', _this._onWindowResize);
+    _this2._onWindowResize = _this2.onResize.bind(_this2);
+    $(window).on('resize', _this2._onWindowResize);
 
-    if (_this.listHeightAutoMode) {
-      _this.once('attach', function () {
+    if (_this2.listHeightAutoMode) {
+      _this2.once('attach', function () {
         this.listHeight = this.queryListHeight();
         if (this.isRendered) {
           this.updateListScrollerHeight();
@@ -242,7 +246,7 @@ var BufferedListView = function (_Backbone$View) {
         }
       });
     }
-    return _this;
+    return _this2;
   }
 
   _createClass(BufferedListView, [{
@@ -256,6 +260,18 @@ var BufferedListView = function (_Backbone$View) {
       delete this.models;
       delete this.el;
       delete this.$el;
+    }
+  }, {
+    key: 'listenForAttaching',
+    value: function listenForAttaching() {
+      var mutationObserver = new MutationObserver(function (records, _this) {
+        console.log(records, _this);
+      });
+      mutationObserver.observe(this.el, {
+        childList: true,
+        attributes: true,
+        characterData: true
+      });
     }
 
     /**
@@ -272,7 +288,7 @@ var BufferedListView = function (_Backbone$View) {
     /* Rendering related methods */
 
     /**
-     * Returns the content of a empty BufferedListView
+     * Returns the html content of a empty BufferedListView
      * @returns {String}
     **/
 
@@ -283,7 +299,7 @@ var BufferedListView = function (_Backbone$View) {
     }
 
     /**
-     * Put the value returned by template method listen all events necessary
+     * Put the value returned by template method and listen all events necessary
     **/
 
   }, {
@@ -368,23 +384,27 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'renderItemsRange',
     value: function renderItemsRange(_ref2) {
-      var _this2 = this;
+      var _this3 = this;
 
       var _ref3 = _slicedToArray(_ref2, 2);
 
       var start = _ref3[0];
       var end = _ref3[1];
 
-      this.__actualIndex__ = start;
+      if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
       var modelsEnd = Math.min(this.models.length - 1, end + this.visibleOutboundItemsCount);
       var rangeOfModels = this.models.slice(modelsStart, modelsEnd);
       var views = rangeOfModels.map(function (model, index) {
-        var view = _this2.getView(model, modelsStart + Number(index));
+        var view = _this3.getView(model, modelsStart + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);
         return view;
       });
       this.renderViews(views);
+      Object.defineProperty(this, '_currentVisibleRange', {
+        configurable: true, writable: false,
+        value: createConstantArray(start, end)
+      });
       if (BufferedListView.DEV_MODE) this.renderDebugInfos();
     }
 
@@ -524,6 +544,9 @@ var BufferedListView = function (_Backbone$View) {
     value: function onScroll(event) {
       this._onScroll(event);
     }
+
+    /* Class behavior dependant events */
+
   }, {
     key: '_onResize',
     value: function _onResize(event) {
@@ -548,9 +571,51 @@ var BufferedListView = function (_Backbone$View) {
       var startIndex = _defineRangeOfModelsV2[0];
       var endIndex = _defineRangeOfModelsV2[1];
 
-      $('#debug-container').html('\n<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')\n<div>Current start index: ' + this.__actualIndex__ + '</div>');
+      $('#debug-container').html('\n<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
     }
   }]);
 
   return BufferedListView;
 }(Backbone.View);
+
+var jQueryBufferedListViewContainer = function () {
+  function jQueryBufferedListViewContainer() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    _classCallCheck(this, jQueryBufferedListViewContainer);
+
+    this.options = options;
+    this.render();
+  }
+
+  _createClass(jQueryBufferedListViewContainer, [{
+    key: 'getAttribute',
+    value: function getAttribute(key) {
+      return this.options[key];
+    }
+  }, {
+    key: 'setAttribute',
+    value: function setAttribute(key, value) {
+      this.options[key] = value;
+    }
+  }, {
+    key: 'render',
+    value: function render() {}
+  }]);
+
+  return jQueryBufferedListViewContainer;
+}();
+
+$.fn.bufferedListView = function bufferedListView(key, value) {
+  if (typeof key === 'string') {
+    if (!this.prop('buffered-list-view')) return this;
+    if (typeof value !== 'undefined') {
+      this.prop('buffered-list-view').setAttribute(key, value);
+      return this;
+    }
+    return this.prop('buffered-list-view').getAttribute(key);
+  }
+  var options = key;
+  this.prop('buffered-list-view', new jQueryBufferedListViewContainer(options));
+  return this;
+};

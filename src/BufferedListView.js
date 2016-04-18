@@ -7,7 +7,7 @@ import { createConstantArray } from 'arrays';
 export default class BufferedListView extends Backbone.View {
 
   get isAttached() {
-    return this.el && this.el.parentNode;
+    return !!this.el && !!this.el.parentNode;
   }
 
   /**
@@ -105,6 +105,7 @@ export default class BufferedListView extends Backbone.View {
     this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
     if (this.isAttached) {
+      if (this.listHeightAutoMode) this.listHeight = this.queryListHeight();
       this.updateListScrollerHeight();
       this.renderVisibleItems();
     }
@@ -171,7 +172,7 @@ export default class BufferedListView extends Backbone.View {
       configurable: true, writable: false,
       value: createConstantArray(start, end)
     });
-    if (BufferedListView.DEV_MODE) this.renderDebugInfos();
+    if (this.constructor.DEV_MODE) this.renderDebugInfos();
   }
 
   /**

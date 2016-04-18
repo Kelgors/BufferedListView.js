@@ -1,0 +1,44 @@
+#city-list-view {
+  width: 400px;
+  height: 200px;
+  margin: 0 auto;
+}
+#city-list-view .list-container {
+  width: inherit;
+  height: inherit;
+  overflow-y: scroll;
+  position: relative;
+  border: 1px solid black;
+}
+
+#city-list-view .list-container > .list-display > li {
+  /* Absolutly needed (this is not a wordplay with postion: absolute;) */
+  position: absolute;
+  height: 29px; /* fixed height */
+  /** Styling stuff **/
+  overflow: hidden;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid black;
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  background: white;
+}
+
+#city-list-view .item-view img {
+  margin: 4px 10px;
+  float: left;
+}
+
+#city-list-view .item-view {
+  display: block;
+  line-height: 30px;
+  height: 30px;
+  float: left;
+}
+
+#city-list-view .credits {
+  margin: 20px 0;
+}
+

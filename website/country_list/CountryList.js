@@ -18,6 +18,7 @@ define('country_list/CountryList', [ 'country_list/CountryItemView', 'BufferedLi
       }
     }
   });
+  CountryList.prototype.constructor = CountryList;
 
   exports.default = CountryList;
 

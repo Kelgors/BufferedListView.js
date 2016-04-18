@@ -5,5 +5,12 @@
     "style": "country_list/list-style.css",
     "data": "country_list/data.json",
     "ListConstructor": "country_list/CountryList"
+  },
+  {
+    "title": "Cities list",
+    "description": "74071 cities ! Boom bitch ! What you gonna do ?<br>(Cities list from <a href=\"http://openweathermap.org/help/city_list.txt\">OpenWeatherMap</a>)",
+    "style": "city_list/list-style.css",
+    "data": "city_list/data.json",
+    "ListConstructor": "city_list/CityList"
   }
 ]

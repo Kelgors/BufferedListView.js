@@ -5,12 +5,81 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
+<div id="debug-container"></div>
   <h1>BufferedListView.js</h1>
   <h3>Support modern browsers (IE9+)</h3>
-  <section id="example" class="pushed-part">
+  <section id="example" class="pushed-part hidden">
     <h4 id="example-title"></h4>
     <h5 id="example-subtitle"></h5>
     <div id="example-list-container"></div>
+  </section>
+
+
+  <section id="getting-started">
+    <h4>Getting Started</h4>
+<pre>
+<code>
+/* Definition */
+/**
+ * Override first the item view to show what you want to show
+ * An ItemView will be used several times. It needs to clear its via
+ * a clear method (default name).
+ * After all, you need to define a destroy method. If the destroy
+ * logic is the same as the clear method, just override static property
+ * static DESTROY_METHOD = 'clear';
+ *
+ * To show what you want, you need to override the template method which returns
+ * a string of html.
+ * You can also override render method to fill the "el" or "$el" property.
+**/
+class MyItemView extends BufferedListItemView {
+  static CLEAR_METHOD = 'clear';
+  static DESTROY_METHOD = 'destroy';
+
+  destroy() {
+    // your destroy logic
+  }
+
+  clear() {
+    // Actions needed to clear the view, to be prepared to be used another time
+    this.model = null;
+  }
+
+  template() {
+    return '&lt;div&gt;' + this.model.id + '&lt;div&gt;';
+  }
+}
+
+/**
+ * Now, you can override the buffered list view.
+ *
+**/
+class MyListView extends BufferedListView {
+
+  constructor() {
+    super({ listItemHeight: 30 });
+  }
+
+  getItemConstructor() {
+    return MyItemView;
+  }
+}
+
+/* Usage */
+
+  /* Case 1 */
+const listview = new MyListView();
+listview.render();
+document.body.appendChild(listview.el);
+listview.trigger('attach');
+
+/* Case 2: with Marionette */
+
+const listview = new BufferedListView({ listItemHeight: 30, ItemConstructor: MyItemView });
+myMarionetteApplication.getRegion('page-body').show(listview);
+
+</code>
+</pre>
   </section>
 
   <script src="bower_components/babel-polyfill/browser-polyfill.js"></script>

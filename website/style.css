@@ -10,11 +10,38 @@ html, body {
   padding: 10px 0;
 }
 
+h1 {
+  font-size: 1.5em
+}
+h2 {
+  font-size: 1.4em
+}
+h3 {
+  font-size: 1.3em
+}
+h4 {
+  font-size: 1.2em
+}
+h5 {
+  font-size: 1.1em
+}
+h6 {
+  font-size: 1.05em
+}
+
 #example-title, #example-subtitle {
-  font-size: 1.3em;
   margin: 5px 0;
   text-align: center;
 }
-#example-subtitle {
-  font-size: 1.2em;
+.hidden {
+  display: none;
+}
+#debug-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+  height: 80px;
+  background: white;
+  border: 1px solid black;
 }

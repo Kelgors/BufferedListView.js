@@ -8,10 +8,11 @@ require([ 'jquery' ], function (jQuery) {
   }
   jQuery.getJSON('options.json')
     .done(function onOptionsLoaded(possibilities) {
+      $('#example').removeClass('hidden');
       var index = Math.round(Math.random() * (possibilities.length - 1));
       var conf = possibilities[index];
       document.getElementById('example-title').textContent = conf.title;
-      document.getElementById('example-subtitle').textContent = conf.description;
+      document.getElementById('example-subtitle').innerHTML = conf.description;
 
       if ('style' in conf) addStyle(conf['style']);
 
@@ -20,9 +21,12 @@ require([ 'jquery' ], function (jQuery) {
 
         $.getJSON(conf['data'])
           .done(function onDataLoaded(data) {
+
+            ListView.DEV_MODE = !!document.getElementById('debug-container');
+
             var list = new ListView({ models: data });
             document.getElementById('example-list-container').appendChild(list.el);
-            list.trigger('attach');
+            //list.trigger('attach');
             list.render();
           });
       });

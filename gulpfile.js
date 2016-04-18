@@ -82,7 +82,7 @@ gulp.task('build:js:globals:min', () => {
 gulp.task('build:js', buildJsTasks);
 
 gulp.task('watch:js', function () {
-  return gulp.watch('src/*.js', [ 'build:js:globals' ]);
+  return gulp.watch('src/*.js', [ 'build:js:amd' ]);
 });
 
 // Server
@@ -93,14 +93,6 @@ gulp.task('serve:website', function () {
     root: 'website',
     livereload: true,
     port: 3000
-  });
-});
-
-gulp.task('serve:example:countries', function () {
-  return connect.server({
-    root: [ 'dist', 'bower_components', 'examples/shared', 'examples/country_list' ],
-    port: 8000,
-    livereload: false
   });
 });
 
