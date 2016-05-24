@@ -1,5 +1,6 @@
 require([ 'jquery' ], function (jQuery) {
   function addStyle(url) {
+    console.log('addStyle', url);
     var link = document.createElement('link');
     link.rel = 'stylesheet';
     link.type = 'text/css';
@@ -25,7 +26,7 @@ require([ 'jquery' ], function (jQuery) {
             ListView.DEV_MODE = !!document.getElementById('debug-container');
 
             var list = new ListView({ models: data });
-            document.getElementById('example-list-container').appendChild(list.el);
+            list.attachTo(document.getElementById('example-list-container'));
             //list.trigger('attach');
             list.render();
           });

@@ -1,14 +1,11 @@
 import $ from 'jquery';
-import Backbone from 'backbone';
+import Bullet from 'bullet';
 import Pool from 'Pool';
+import View from 'View';
 import BufferedListItemView from 'BufferedListItemView';
 import { createConstantArray } from 'arrays';
 
-export default class BufferedListView extends Backbone.View {
-
-  get isAttached() {
-    return !!this.el && !!this.el.parentNode;
-  }
+export default class BufferedListView extends View {
 
   /**
    *
@@ -25,7 +22,7 @@ export default class BufferedListView extends Backbone.View {
   **/
   constructor(options = {}) {
     super(options);
-    this.el.__view__ = this;
+    $.extend(this, Bullet);
     Object.defineProperty(this, '_currentVisibleRange', {
       configurable: true, writable: false,
       value: createConstantArray(0, 0)
@@ -54,7 +51,7 @@ export default class BufferedListView extends Backbone.View {
     $(window).on('resize', this._onWindowResize);
 
     if (this.listHeightAutoMode) {
-      this.once('attach', function () {
+      this.once('attach', () => {
         this.listHeight = this.queryListHeight();
         if (this.isRendered) {
           this.updateListScrollerHeight();
@@ -117,6 +114,11 @@ export default class BufferedListView extends Backbone.View {
       this.updateListScrollerHeight();
       this.renderVisibleItems();
     }
+  }
+
+  attachTo(element) {
+    $(element).append(this.$el);
+    if (this.el.parentNode) this.trigger('attach');
   }
 
   /**
@@ -200,7 +202,7 @@ export default class BufferedListView extends Backbone.View {
     if (currentViews.length === 0) {
       this.addViews(views);
     } else {
-      const viewsToRemove = _.reject(currentViews, function (view) { return views.includes(view); });
+      const viewsToRemove = currentViews.filter((view) => { return !views.includes(view); });
       const viewsToAdd = views;
       this.removeViews(viewsToRemove);
       this.addViews(viewsToAdd);
@@ -293,7 +295,7 @@ export default class BufferedListView extends Backbone.View {
     this._onScroll(event);
   }
 
-  /* Class behavior dependant events */
+  /* Class behavior dependent events */
   _onResize(event) {
     if (this.listHeightAutoMode) this.listHeight = this.queryListHeight();
   }

@@ -22,10 +22,9 @@
     "index2.html"
   ],
   "dependencies": {
-    "backbone.wreqr": "^1.0.0",
-    "backbone.marionette": "^2.4.4",
     "pool.js": "master",
-    "jquery": "^2.2.2"
+    "jquery": "^2.2.2",
+    "bullet": "^2.2.1"
   },
   "devDependencies": {
     "requirejs": "requirejs-bower#^2.2.0",
