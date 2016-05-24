@@ -1,359 +1,4 @@
-'use strict';
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function set_constant(instance, key, value) {
-  Object.defineProperty(instance, key, {
-    writable: false, configurable: false,
-    value: value
-  });
-}
-
-var Pool = function () {
-  function Pool(ObjectConstructor) {
-    var size = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
-
-    var _ref = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-    var _ref$clearMethodName = _ref.clearMethodName;
-    var clearMethodName = _ref$clearMethodName === undefined ? null : _ref$clearMethodName;
-    var _ref$destroyMethodNam = _ref.destroyMethodName;
-    var destroyMethodName = _ref$destroyMethodNam === undefined ? null : _ref$destroyMethodNam;
-    var _ref$isFactory = _ref.isFactory;
-    var isFactory = _ref$isFactory === undefined ? false : _ref$isFactory;
-
-    _classCallCheck(this, Pool);
-
-    this.size = size;
-    set_constant(this, 'ObjectConstructor', ObjectConstructor);
-    set_constant(this, 'objectClearMethodName', clearMethodName);
-    set_constant(this, 'objectDestroyMethodName', destroyMethodName);
-    set_constant(this, 'objectConstructorIsFactory', isFactory);
-    set_constant(this, 'borrowedObjects', []);
-    set_constant(this, 'availableObjects', []);
-  }
-
-  _createClass(Pool, [{
-    key: 'destroy',
-    value: function destroy() {
-      this._destroyChildren(this.borrowedObjects);
-      this._destroyChildren(this.availableObjects);
-    }
-  }, {
-    key: '_destroyChildren',
-    value: function _destroyChildren(arrayOfObjects) {
-      var methodName = this.objectDestroyMethodName || this.objectClearMethodName;
-      if (!methodName) {
-        // just empty it
-        arrayOfObjects.splice(0, arrayOfObjects.length);
-        return;
-      }
-      var object = void 0;
-      while (object = arrayOfObjects.pop()) {
-        try {
-          object[methodName].call(object);
-        } catch (err) {
-          if (typeof console === 'undefined') throw err;
-          console.log('Error during destroy');
-        }
-      }
-    }
-  }, {
-    key: 'borrows',
-    value: function borrows() {
-      var object = null;
-      if (this.hasAvailables()) {
-        if (this.availableObjects.length === 0) {
-          object = this.objectConstructorIsFactory ? this.ObjectConstructor() : new this.ObjectConstructor();
-        } else {
-          object = this.availableObjects.pop();
-        }
-        this.borrowedObjects.push(object);
-      }
-      return object;
-    }
-  }, {
-    key: 'returns',
-    value: function returns(borrowedObject) {
-      if (!(borrowedObject instanceof this.ObjectConstructor)) {
-        throw new Error('Can\'t return object which is not a ' + this.ObjectConstructor.name);
-      }
-      var index = this.borrowedObjects.indexOf(borrowedObject);
-      if (index === -1) {
-        if (this.availableObjects.includes(borrowedObject)) {
-          throw new Error(this.ObjectConstructor.name + ' already returned !');
-        }
-        throw new Error('Object given in Pool#returns() is not referenced in this Pool instance.');
-      }
-      this.borrowedObjects.splice(index, 1);
-      if (this.objectClearMethodName !== null) {
-        try {
-          borrowedObject[this.objectClearMethodName].call(borrowedObject);
-        } catch (err) {
-          if (typeof console === 'undefined') throw err;
-          console.log('Unable to call method ' + this.objectClearMethodName + ' on object instance ' + String(borrowedObject));
-        }
-      }
-      this.availableObjects.push(borrowedObject);
-    }
-  }, {
-    key: 'hasAvailables',
-    value: function hasAvailables() {
-      return this.size === -1 || this.borrowedObjects.length < this.size;
-    }
-  }, {
-    key: 'getCountAvailables',
-    value: function getCountAvailables() {
-      return this.availableObjects.length;
-    }
-  }, {
-    key: 'getCountBorrowed',
-    value: function getCountBorrowed() {
-      return this.borrowedObjects.length;
-    }
-  }, {
-    key: 'toString',
-    value: function toString() {
-      return 'Pool<' + this.ObjectConstructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
-    }
-  }]);
-
-  return Pool;
-}();
-
-var BufferedListItemView = function () {
-  function BufferedListItemView() {
-    _classCallCheck(this, BufferedListItemView);
-
-    this.$el = $(this.el = document.createElement('li'));
-    this.$el.addClass('item-view');
-    this.$ = this.$el.find.bind(this.$el);
-    this.el.__view__ = this;
-  }
-
-  _createClass(BufferedListItemView, [{
-    key: 'destroy',
-    value: function destroy() {
-      if (this.$el) this.remove();
-      if (this.el) delete this.el.__view__;
-      delete this.model;
-      delete this.$;
-      delete this.$el;
-      delete this.el;
-    }
-  }, {
-    key: 'clear',
-    value: function clear() {
-      this.remove();
-      this.el.innerHTML = '';
-      this.model = null;
-    }
-  }, {
-    key: 'remove',
-    value: function remove() {
-      this.$el.remove();
-    }
-  }, {
-    key: 'template',
-    value: function template() {
-      return String(this.indexInModelList);
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      this.$el.html(this.template());
-    }
-  }]);
-
-  return BufferedListItemView;
-}();
-
-BufferedListItemView.CLEAR_METHOD = 'clear';
-BufferedListItemView.DESTROY_METHOD = 'destroy';
-
-var BufferedListView = function (_Backbone$View) {
-  _inherits(BufferedListView, _Backbone$View);
-
-  _createClass(BufferedListView, [{
-    key: 'isAttached',
-    get: function get() {
-      return this.el && this.el.parentNode;
-    }
-
-    /**
-     *
-     * @param {Object} options
-     * @param {String} options.listContainerSelector      - Selector where to append child
-     * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
-     * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
-     * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
-     * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
-     * @param {Array} options.models                      - The list of models to be rendered
-     * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
-    **/
-
-  }]);
-
-  function BufferedListView() {
-    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-    _classCallCheck(this, BufferedListView);
-
-    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
-
-    _this2.el.__view__ = _this2;
-    Object.defineProperty(_this2, '_currentVisibleRange', {
-      configurable: true, writable: false,
-      value: createConstantArray(0, 0)
-    });
-
-    _this2.isRendered = false;
-    _this2.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
-    _this2.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
-    _this2.scrollPositionY = 0;
-    _this2.listHeight = options.listHeight || 'auto';
-    _this2.listHeightAutoMode = _this2.listHeight === 'auto';
-    _this2.listItemHeight = options.listItemHeight;
-    _this2.idModelPropertyName = options.idModelPropertyName || 'id';
-
-    _this2.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
-
-    _this2.models = options.models || [];
-    var ItemConstructor = options.ItemConstructor || _this2.getItemConstructor();
-    _this2.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
-      clearMethodName: ItemConstructor.CLEAR_METHOD,
-      destroyMethodName: ItemConstructor.DESTROY_METHOD
-    });
-    _this2.viewsMap = new Map();
-
-    _this2._onWindowResize = _this2.onResize.bind(_this2);
-    $(window).on('resize', _this2._onWindowResize);
-
-    if (_this2.listHeightAutoMode) {
-      _this2.once('attach', function () {
-        this.listHeight = this.queryListHeight();
-        if (this.isRendered) {
-          this.updateListScrollerHeight();
-          this.renderVisibleItems();
-        }
-      });
-    }
-    return _this2;
-  }
-
-  _createClass(BufferedListView, [{
-    key: 'destroy',
-    value: function destroy() {
-      $(window).off('resize', this._onWindowResize);
-      this.viewsPool.destroy();
-      if (this.el) delete this.el.__view__;
-      if (this.$el) this.remove();
-      delete this._onWindowResize;
-      delete this.models;
-      delete this.el;
-      delete this.$el;
-    }
-  }, {
-    key: 'listenForAttaching',
-    value: function listenForAttaching() {
-      var mutationObserver = new MutationObserver(function (records, _this) {
-        console.log(records, _this);
-      });
-      mutationObserver.observe(this.el, {
-        childList: true,
-        attributes: true,
-        characterData: true
-      });
-    }
-
-    /**
-     * Returns the ItemView used to render each models
-     * @returns {Function}
-    **/
-
-  }, {
-    key: 'getItemConstructor',
-    value: function getItemConstructor() {
-      return BufferedListItemView;
-    }
-
-    /* Rendering related methods */
-
-    /**
-     * Returns the html content of a empty BufferedListView
-     * @returns {String}
-    **/
-
-  }, {
-    key: 'template',
-    value: function template() {
-      return '<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>';
-    }
-
-    /**
-     * Put the value returned by template method and listen all events necessary
-    **/
-
-  }, {
-    key: 'render',
-    value: function render() {
-      // render view
-      this.$el.html(this.template());
-      this.isRendered = true;
-      // query elements
-      this.$listContainer = this.$(this.listContainerSelector);
-      this.$scrollerContainer = this.$(this.scrollerContainerSelector);
-      // set on scroll listener
-      this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
-
-      if (this.isAttached) {
-        this.updateListScrollerHeight();
-        this.renderVisibleItems();
-      }
-    }
-
-    /**
-     * Scroll to the index of a model
-     * @param {Number} index - The index of the model in models array
-     * @param {?Object} options
-     * @param {Object} options.animate - scroll with animation
-    **/
-
-  }, {
-    key: 'scrollToIndex',
-    value: function scrollToIndex(index) {
-      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      var scrollTopPosition = index * this.listItemHeight;
-      if (options.animate) {
-        this.$scrollerContainer.animate({
-          scrollTop: scrollTopPosition
-        }, options.duration || 300);
-      } else {
-        this.$scrollerContainer.scrollTop(scrollTopPosition);
-      }
-    }
-
-    /**
-     * Calculate the total height of this view
-    **/
-
-  }, {
-    key: 'queryListHeight',
-    value: function queryListHeight() {
-      return this.$el.outerHeight();
-    }
-
-    /**
-     * Update the scroller height. It results that the list scrolling is adapted to its content
+"use strict";function _possibleConstructorReturn(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function set_constant(e,t,i){Object.defineProperty(e,t,{writable:!1,configurable:!1,value:i})}function createConstantArray(){for(var e=arguments.length,t=Array(e),i=0;e>i;i++)t[i]=arguments[i];for(var r=new Array(t.length),n=0;n<t.length;n++)Object.defineProperty(r,n,{configurable:!1,writable:!1,enumerable:!0,value:t[n]});return r}var _slicedToArray=function(){function e(e,t){var i=[],r=!0,n=!1,o=void 0;try{for(var s,l=e[Symbol.iterator]();!(r=(s=l.next()).done)&&(i.push(s.value),!t||i.length!==t);r=!0);}catch(a){n=!0,o=a}finally{try{!r&&l["return"]&&l["return"]()}finally{if(n)throw o}}return i}return function(t,i){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,i);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}(),_createClass=function(){function e(e,t){for(var i=0;i<t.length;i++){var r=t[i];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,i,r){return i&&e(t.prototype,i),r&&e(t,r),t}}(),Pool=function(){function e(t){var i=arguments.length<=1||void 0===arguments[1]?-1:arguments[1],r=arguments.length<=2||void 0===arguments[2]?{}:arguments[2],n=r.clearMethodName,o=void 0===n?null:n,s=r.destroyMethodName,l=void 0===s?null:s,a=r.isFactory,u=void 0===a?!1:a;_classCallCheck(this,e),this.size=i,set_constant(this,"ObjectConstructor",t),set_constant(this,"objectClearMethodName",o),set_constant(this,"objectDestroyMethodName",l),set_constant(this,"objectConstructorIsFactory",u),set_constant(this,"borrowedObjects",[]),set_constant(this,"availableObjects",[]),set_constant(this,"awaitCallbacks",[])}return _createClass(e,[{key:"destroy",value:function(){this._destroyChildren(this.borrowedObjects),this._destroyChildren(this.availableObjects),this.awaitCallbacks.length&&this.awaitCallbacks.splice(0,this.awaitCallbacks.length)}},{key:"_destroyChildren",value:function(e){var t=this.objectDestroyMethodName||this.objectClearMethodName;if(!t)return void e.splice(0,e.length);for(var i=void 0;i=e.pop();)try{i[t].call(i)}catch(r){if("undefined"==typeof console)throw r;console.log("Error during destroy")}}},{key:"await",value:function(){var e=this;return this.hasAvailables()?Promise.resolve(this.borrows()):new Promise(function(t,i){e.awaitCallbacks.push(t)})}},{key:"borrows",value:function(){var e=null;return this.hasAvailables()&&(e=0===this.availableObjects.length?this.objectConstructorIsFactory?this.ObjectConstructor():new this.ObjectConstructor:this.availableObjects.pop(),this.borrowedObjects.push(e)),this._onObjectBorrowed&&this._onObjectBorrowed(),e}},{key:"returns",value:function(e){if(!(this.objectConstructorIsFactory||e instanceof this.ObjectConstructor))throw new Error("Can't return object which is not a "+this.ObjectConstructor.name);var t=this.borrowedObjects.indexOf(e);if(-1===t){if(this.availableObjects.indexOf(e)>-1)throw new Error(this.ObjectConstructor.name+" already returned !");throw new Error("Object given in Pool#returns() is not referenced in this Pool instance.")}if(this.borrowedObjects.splice(t,1),null!==this.objectClearMethodName)try{e[this.objectClearMethodName].call(e)}catch(i){if("undefined"==typeof console)throw i;console.log("Unable to call method "+this.objectClearMethodName+" on object instance "+String(e))}this.availableObjects.push(e),this._onObjectReturned&&this._onObjectReturned()}},{key:"hasAvailables",value:function(){return-1===this.size||this.borrowedObjects.length<this.size}},{key:"getCountAvailables",value:function(){return(-1===this.size?Number.MAX_SAFE_INTEGER:this.size)-this.getCountBorrowed()}},{key:"getCountBorrowed",value:function(){return this.borrowedObjects.length}},{key:"toString",value:function(){return"Pool<"+this.ObjectConstructor.name+">(borrowed: "+this.getCountBorrowed()+", available: "+this.getCountAvailables()+")"}},{key:"_onObjectReturned",value:function(){if(console.log("_onObjectReturned"),this.awaitCallbacks.length&&this.hasAvailables()){var e=this.awaitCallbacks.shift();e(this.borrows())}}}]),e}(),BufferedListItemView=function(e){function t(){_classCallCheck(this,t);var e=_possibleConstructorReturn(this,Object.getPrototypeOf(t).call(this));return e.$el.addClass("item-view"),e}return _inherits(t,e),t}(View);BufferedListItemView.tagName="li",BufferedListItemView.CLEAR_METHOD="clear",BufferedListItemView.DESTROY_METHOD="destroy";var BufferedListView=function(e){function t(){var e=arguments.length<=0||void 0===arguments[0]?{}:arguments[0];_classCallCheck(this,t);var i=_possibleConstructorReturn(this,Object.getPrototypeOf(t).call(this,e));$.extend(i,Bullet),Object.defineProperty(i,"_currentVisibleRange",{configurable:!0,writable:!1,value:createConstantArray(0,0)}),i.isRendered=!1,i.listContainerSelector=e.listContainerSelector||".list-container:first > .list-display",i.scrollerContainerSelector=e.scrollerContainerSelector||".list-container:first",i.scrollPositionY=0,i.listHeight=e.listHeight||"auto",i.listHeightAutoMode="auto"===i.listHeight,i.listItemHeight=e.listItemHeight,i.idModelPropertyName=e.idModelPropertyName||"id",i.visibleOutboundItemsCount="number"!=typeof e.visibleOutboundItemsCount?2:e.visibleOutboundItemsCount,i.models=e.models||[];var r=e.ItemConstructor||i.getItemConstructor();return i.viewsPool=new Pool(r,e.maxPoolSize||-1,{clearMethodName:r.CLEAR_METHOD,destroyMethodName:r.DESTROY_METHOD}),i.viewsMap=new Map,i._onWindowResize=i.onResize.bind(i),$(window).on("resize",i._onWindowResize),i.listHeightAutoMode&&i.once("attach",function(){i.listHeight=i.queryListHeight(),i.isRendered&&(i.updateListScrollerHeight(),i.renderVisibleItems())}),i}return _inherits(t,e),_createClass(t,[{key:"destroy",value:function(){$(window).off("resize",this._onWindowResize),this.viewsPool.destroy(),this.el&&delete this.el.__view__,this.$el&&this.remove(),delete this._onWindowResize,delete this.models,delete this.el,delete this.$el}},{key:"setModels",value:function(){var e=arguments.length<=0||void 0===arguments[0]?[]:arguments[0];this.models=e,this.updateListScrollerHeight(),this.renderVisibleItems()}},{key:"getItemConstructor",value:function(){return BufferedListItemView}},{key:"template",value:function(){return'<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>'}},{key:"render",value:function(){this.$el.html(this.template()),this.isRendered=!0,this.$listContainer=this.$(this.listContainerSelector),this.$scrollerContainer=this.$(this.scrollerContainerSelector),this.$scrollerContainer.on("scroll",this.onScroll.bind(this)),this.isAttached&&(this.listHeightAutoMode&&(this.listHeight=this.queryListHeight()),this.updateListScrollerHeight(),this.renderVisibleItems())}},{key:"attachTo",value:function(e){$(e).append(this.$el),this.el.parentNode&&this.trigger("attach")}},{key:"scrollToIndex",value:function(e){var t=arguments.length<=1||void 0===arguments[1]?{}:arguments[1],i=e*this.listItemHeight;t.animate?this.$scrollerContainer.animate({scrollTop:i},t.duration||300):this.$scrollerContainer.scrollTop(i)}},{key:"queryListHeight",value:function(){return this.$el.outerHeight()}},{key:"updateListScrollerHeight",value:function(){this.$scrollerContainer.find(".list-content").height(this.models.length*this.listItemHeight)}},{key:"defineRangeOfModelsVisibles",value:function(){var e=Math.floor(this.scrollPositionY/this.listItemHeight),t=Math.ceil(this.listHeight/this.listItemHeight),i=Math.min(this.models.length-1,e+t);return[e,i]}},{key:"renderItemsRange",value:function(e){var t=this,i=_slicedToArray(e,2),r=i[0],n=i[1];if(this._currentVisibleRange[0]!==r||this._currentVisibleRange[1]!==n){var o=Math.max(0,r-this.visibleOutboundItemsCount),s=Math.min(this.models.length-1,n+this.visibleOutboundItemsCount),l=this.models.slice(o,s),a=l.map(function(e,i){var r=t.getView(e,o+Number(i));return r.el.setAttribute("data-index",r.indexInModelList),r});this.renderViews(a),Object.defineProperty(this,"_currentVisibleRange",{configurable:!0,writable:!1,value:createConstantArray(r,n)}),this.constructor.DEV_MODE&&this.renderDebugInfos()}}},{key:"renderVisibleItems",value:function(){this.renderItemsRange(this.defineRangeOfModelsVisibles())}},{key:"renderViews",value:function(e){var t=this.$listContainer.children().toArray().map(function(e){return e.__view__});if(0===t.length)this.addViews(e);else{var i=t.filter(function(t){return!e.includes(t)}),r=e;this.removeViews(i),this.addViews(r)}}},{key:"getView",value:function(e,t){var i=this.viewsMap.get(e[this.idModelPropertyName]);if("undefined"==typeof this.idModelPropertyName)throw new Error("BufferedListView#idModelPropertyName must be defined");if("undefined"==typeof e[this.idModelPropertyName])throw new Error("The model."+this.idModelPropertyName+" is undefined. There is no chance to show more than one view.");if(!i){if(i=this.viewsPool.borrows(),!i)throw new Error("No views availables. Actually borrowed: "+this.viewsPool.getCountBorrowed());i.model=e,i.indexInModelList=t,i.render(),this.viewsMap.set(e[this.idModelPropertyName],i)}return i}},{key:"removeViews",value:function(e){for(var t=0;t<e.length;t++)this.removeView(e[t])}},{key:"removeView",value:function(e){this.viewsMap["delete"](e.model[this.idModelPropertyName]),this.viewsPool.returns(e)}},{key:"addViews",value:function(e){for(var t=0;t<e.length;t++)this.addView(e[t],t)}},{key:"addView",value:function(e,t){var i=this.$listContainer,r=i.children(),n=this.listItemHeight*e.indexInModelList;e.el.style.top=String(n)+"px",r.length<=t?i.append(e.el):0===t?i.prepend(e.el):$(i.children().get(t)).after(e.el)}},{key:"onResize",value:function(e){this._onResize(e),this.renderVisibleItems()}},{key:"onScroll",value:function(e){this._onScroll(e)}},{key:"_onResize",value:function(e){this.listHeightAutoMode&&(this.listHeight=this.queryListHeight())}},{key:"_onScroll",value:function(e){this.scrollPositionY=this.$scrollerContainer.scrollTop(),this.renderVisibleItems()}},{key:"renderDebugInfos",value:function(){var e=this.defineRangeOfModelsVisibles(),t=_slicedToArray(e,2),i=t[0],r=t[1];$("#debug-container").html("\n<div>Actual pool usage: "+this.viewsPool.getCountBorrowed()+" / "+this.viewsPool.getCountAvailables()+"</div>\n<div>Visible range: ("+i+", "+r+")</div>\n<div>Visible models: ("+Math.max(0,i-this.visibleOutboundItemsCount)+", "+Math.min(this.models.length-1,r+this.visibleOutboundItemsCount)+")")}}]),t}(View),View=function(){function e(){_classCallCheck(this,e),this.$el=jQuery(this.el=document.createElement(this.constructor.tagName||"div")),this.$el.addClass("view"),this.el.__view__=this}return _createClass(e,[{key:"isAttached",get:function(){return!!this.el&&!!this.el.parentNode}}]),_createClass(e,[{key:"destroy",value:function(){this.el&&(this.el.__view__=null,this.remove()),this.el=this.$el=this.model=null}},{key:"$",value:function(){return this.$el.find.apply(this.$el,arguments)}},{key:"clear",value:function(){this.remove(),this.el.innerHTML="",this.model=null}},{key:"remove",value:function(){this.el.parentNode&&this.el.parentNode.removeChild(this.el)}},{key:"template",value:function(){return String(this.indexInModelList)}},{key:"render",value:function(){this.el.innerHTML=this.template()}}]),e}(),AUTHORIZED_LISTVIEW_OPTIONS_KEYS=["listContainerSelector","scrollerContainerSelector","listHeight","listItemHeight","visibleOutboundItemsCount","models","maxPoolSize","idModelPropertyName","ItemConstructor"],jQueryBufferedListViewContainer=function(){function e(t){var i=arguments.length<=1||void 0===arguments[1]?{}:arguments[1];_classCallCheck(this,e),this.$container=t,this.options=i,this.createListView(),this.render()}return _createClass(e,[{key:"getAttribute",value:function(e){return this.options[e]}},{key:"setAttribute",value:function(e,t){var i=this.options[e];this.options[e]=t,"function"==typeof this["_"+e+"Changed"]&&this["_"+e+"Changed"].call(this,i,t)}},{key:"createListView",value:function(){options.ItemConstructor=this.generateItemView(this.getAttribute("template")),this.listview=new BufferedListView(options)}},{key:"recreateListView",value:function(){this.listview&&this.listview.destroy(),this.createListView(),this.render()}},{key:"render",value:function(){this.listview.$el.parent().get(0)!==this.$container.get(0)&&this.$container.append(this.listview.$el),this.listview.render()}},{key:"generateItemView",value:function(e){var t=function(e){function t(){return _classCallCheck(this,t),_possibleConstructorReturn(this,Object.getPrototypeOf(t).apply(this,arguments))}return _inherits(t,e),_createClass(t,[{key:"clear",value:function(){this.model=null}}]),t}(BufferedListItemView);return t.CLEAR_METHOD="clear",t.DESTROY_METHOD="clear",t.prototype.template=e,t}},{key:"_htmlChanged",value:function(e,t){e!==t&&this.recreateListView()}},{key:"_dataChanged",value:function(e,t){this.listview.setModels(t)}}]),e}();$.fn.bufferedListView=function(e,t){if("string"==typeof e)return this.prop("buffered-list-view")?void 0!==t?(this.prop("buffered-list-view").setAttribute(e,t),this):this.prop("buffered-list-view").getAttribute(e):this;var i=e;return this.prop("buffered-list-view",new jQueryBufferedListViewContainer(this,i)),this};e list scrolling is adapted to its content
     **/
 
   }, {
@@ -384,7 +29,7 @@ var BufferedListView = function (_Backbone$View) {
   }, {
     key: 'renderItemsRange',
     value: function renderItemsRange(_ref2) {
-      var _this3 = this;
+      var _this4 = this;
 
       var _ref3 = _slicedToArray(_ref2, 2);
 
@@ -396,7 +41,7 @@ var BufferedListView = function (_Backbone$View) {
       var modelsEnd = Math.min(this.models.length - 1, end + this.visibleOutboundItemsCount);
       var rangeOfModels = this.models.slice(modelsStart, modelsEnd);
       var views = rangeOfModels.map(function (model, index) {
-        var view = _this3.getView(model, modelsStart + Number(index));
+        var view = _this4.getView(model, modelsStart + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);
         return view;
       });
@@ -405,7 +50,7 @@ var BufferedListView = function (_Backbone$View) {
         configurable: true, writable: false,
         value: createConstantArray(start, end)
       });
-      if (BufferedListView.DEV_MODE) this.renderDebugInfos();
+      if (this.constructor.DEV_MODE) this.renderDebugInfos();
     }
 
     /**
@@ -433,8 +78,8 @@ var BufferedListView = function (_Backbone$View) {
       if (currentViews.length === 0) {
         this.addViews(views);
       } else {
-        var viewsToRemove = _.reject(currentViews, function (view) {
-          return views.includes(view);
+        var viewsToRemove = currentViews.filter(function (view) {
+          return !views.includes(view);
         });
         var viewsToAdd = views;
         this.removeViews(viewsToRemove);
@@ -545,7 +190,7 @@ var BufferedListView = function (_Backbone$View) {
       this._onScroll(event);
     }
 
-    /* Class behavior dependant events */
+    /* Class behavior dependent events */
 
   }, {
     key: '_onResize',
@@ -576,15 +221,96 @@ var BufferedListView = function (_Backbone$View) {
   }]);
 
   return BufferedListView;
-}(Backbone.View);
+}(View);
+
+var View = function () {
+  _createClass(View, [{
+    key: 'isAttached',
+    get: function get() {
+      return !!this.el && !!this.el.parentNode;
+    }
+  }]);
+
+  function View() {
+    _classCallCheck(this, View);
+
+    this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
+    this.$el.addClass('view');
+    this.el.__view__ = this;
+  }
+
+  _createClass(View, [{
+    key: 'destroy',
+    value: function destroy() {
+      if (this.el) {
+        this.el.__view__ = null;
+        this.remove();
+      }
+      this.el = this.$el = this.model = null;
+    }
+  }, {
+    key: '$',
+    value: function $() {
+      return this.$el.find.apply(this.$el, arguments);
+    }
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.remove();
+      this.el.innerHTML = '';
+      this.model = null;
+    }
+  }, {
+    key: 'remove',
+    value: function remove() {
+      if (this.el.parentNode) {
+        this.el.parentNode.removeChild(this.el);
+      }
+    }
+  }, {
+    key: 'template',
+    value: function template() {
+      return String(this.indexInModelList);
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      this.el.innerHTML = this.template();
+    }
+  }]);
+
+  return View;
+}();
+
+function createConstantArray() {
+  for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
+    elements[_key] = arguments[_key];
+  }
+
+  // create array with predefined properties 0, 1, 2, n...
+  var array = new Array(elements.length);
+  for (var index = 0; index < elements.length; index++) {
+    // typeof array === 'object' =D so,
+    // Assign each elements as enumerable non-writable
+    Object.defineProperty(array, index, {
+      configurable: false, writable: false, enumerable: true,
+      value: elements[index]
+    });
+  }
+  return array;
+};
+
+var AUTHORIZED_LISTVIEW_OPTIONS_KEYS = ["listContainerSelector", "scrollerContainerSelector", "listHeight", "listItemHeight", "visibleOutboundItemsCount", "models", "maxPoolSize", "idModelPropertyName", "ItemConstructor"];
 
 var jQueryBufferedListViewContainer = function () {
-  function jQueryBufferedListViewContainer() {
-    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+  function jQueryBufferedListViewContainer($element) {
+    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, jQueryBufferedListViewContainer);
 
+    this.$container = $element;
     this.options = options;
+    this.createListView();
     this.render();
   }
 
@@ -596,26 +322,96 @@ var jQueryBufferedListViewContainer = function () {
   }, {
     key: 'setAttribute',
     value: function setAttribute(key, value) {
+      var oldValue = this.options[key];
       this.options[key] = value;
+      if (typeof this['_' + key + 'Changed'] === 'function') {
+        this['_' + key + 'Changed'].call(this, oldValue, value);
+      }
+    }
+  }, {
+    key: 'createListView',
+    value: function createListView() {
+      options.ItemConstructor = this.generateItemView(this.getAttribute('template'));
+      this.listview = new BufferedListView(options);
+    }
+  }, {
+    key: 'recreateListView',
+    value: function recreateListView() {
+      if (this.listview) this.listview.destroy();
+      this.createListView();
+      this.render();
     }
   }, {
     key: 'render',
-    value: function render() {}
+    value: function render() {
+      if (this.listview.$el.parent().get(0) !== this.$container.get(0)) {
+        this.$container.append(this.listview.$el);
+      }
+      this.listview.render();
+    }
+  }, {
+    key: 'generateItemView',
+    value: function generateItemView(template) {
+      var $$ItemView = function (_BufferedListItemView) {
+        _inherits($$ItemView, _BufferedListItemView);
+
+        function $$ItemView() {
+          _classCallCheck(this, $$ItemView);
+
+          return _possibleConstructorReturn(this, Object.getPrototypeOf($$ItemView).apply(this, arguments));
+        }
+
+        _createClass($$ItemView, [{
+          key: 'clear',
+          value: function clear() {
+            this.model = null;
+          }
+        }]);
+
+        return $$ItemView;
+      }(BufferedListItemView);
+
+      $$ItemView.CLEAR_METHOD = 'clear';
+      $$ItemView.DESTROY_METHOD = 'clear';
+      $$ItemView.prototype.template = template;
+      return $$ItemView;
+    }
+  }, {
+    key: '_htmlChanged',
+    value: function _htmlChanged(oldValue, newValue) {
+      if (oldValue !== newValue) {
+        this.recreateListView();
+      }
+    }
+  }, {
+    key: '_dataChanged',
+    value: function _dataChanged(oldValue, newValue) {
+      this.listview.setModels(newValue);
+    }
   }]);
 
   return jQueryBufferedListViewContainer;
 }();
 
+/*
+* $('#list-view-container').bufferedListView({
+*   data: []
+* });
+* set $('#list-view-container').bufferedListView('data', []);
+* get $('#list-view-container').bufferedListView('data');
+*/
+
+
 $.fn.bufferedListView = function bufferedListView(key, value) {
   if (typeof key === 'string') {
     if (!this.prop('buffered-list-view')) return this;
-    if (typeof value !== 'undefined') {
+    if (value !== undefined) {
       this.prop('buffered-list-view').setAttribute(key, value);
       return this;
     }
     return this.prop('buffered-list-view').getAttribute(key);
   }
   var options = key;
-  this.prop('buffered-list-view', new jQueryBufferedListViewContainer(options));
+  this.prop('buffered-list-view', new jQueryBufferedListViewContainer(this, options));
   return this;
 };
