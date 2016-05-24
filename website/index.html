@@ -22,15 +22,15 @@
 /* Definition */
 /**
  * Override first the item view to show what you want to show
- * An ItemView will be used several times. It needs to clear its via
- * a clear method (default name).
- * After all, you need to define a destroy method. If the destroy
+ * An ItemView will be used several times. It needs to clear its content via
+ * a "clear" method (default name).
+ * Then, you need to define a destroy method. If the destroy
  * logic is the same as the clear method, just override static property
  * static DESTROY_METHOD = 'clear';
  *
  * To show what you want, you need to override the template method which returns
  * a string of html.
- * You can also override render method to fill the "el" or "$el" property.
+ * You can also override render method to fill the "el" or "$el" property as you want.
 **/
 class MyItemView extends BufferedListItemView {
   static CLEAR_METHOD = 'clear';
@@ -51,7 +51,7 @@ class MyItemView extends BufferedListItemView {
 }
 
 /**
- * Now, you can override the buffered list view.
+ * Now, you can override the buffered list view and give the ItemConstructor to it.
  *
 **/
 class MyListView extends BufferedListView {

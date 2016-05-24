@@ -20,6 +20,8 @@ export default class BufferedListView extends Backbone.View {
    * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
    * @param {Array} options.models                      - The list of models to be rendered
    * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
+   * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
+   * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
   **/
   constructor(options = {}) {
     super(options);
@@ -71,6 +73,12 @@ export default class BufferedListView extends Backbone.View {
     delete this.models;
     delete this.el;
     delete this.$el;
+  }
+
+  setModels(models = []) {
+    this.models = models;
+    this.updateListScrollerHeight();
+    this.renderVisibleItems();
   }
 
   /**
