@@ -1,6 +1,6 @@
 {
   "name": "buffered-list-view.js",
-  "version": "1.0.3",
+  "version": "1.0.3 ",
   "description": "A list view to show only visible item views",
   "main": "dist/index.js",
   "authors": [
@@ -18,8 +18,9 @@
   "ignore": [
     "node_modules",
     "bower_components",
-    "index.html",
-    "index2.html"
+    "_index.html",
+    "_index2.html",
+    "concept.sketch"
   ],
   "dependencies": {
     "jquery": "^2.2.2",
