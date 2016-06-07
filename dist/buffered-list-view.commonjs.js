@@ -378,7 +378,7 @@ var BufferedListView = function (_View) {
 
       if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
-      var modelsEnd = Math.min(this.models.length - 1, end + this.visibleOutboundItemsCount);
+      var modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
       var rangeOfModels = this.models.slice(modelsStart, modelsEnd);
       var views = rangeOfModels.map(function (model, index) {
         var view = _this2.getView(model, modelsStart + Number(index));
