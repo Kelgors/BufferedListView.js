@@ -16,7 +16,6 @@ export default class BufferedListView extends View {
    * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
    * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
    * @param {Array} options.models                      - The list of models to be rendered
-   * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
    * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
    * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
   **/
@@ -40,11 +39,7 @@ export default class BufferedListView extends View {
     this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     this.models = options.models || [];
-    const ItemConstructor = options.ItemConstructor || this.getItemConstructor();
-    this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
-      clearMethodName: ItemConstructor.CLEAR_METHOD,
-      destroyMethodName: ItemConstructor.DESTROY_METHOD
-    });
+    this.ItemConstructor = options.ItemConstructor || this.getItemConstructor();
     this.viewsMap = new Map();
 
     this._onWindowResize = this.onResize.bind(this);
@@ -63,13 +58,14 @@ export default class BufferedListView extends View {
 
   destroy() {
     $(window).off('resize', this._onWindowResize);
-    this.viewsPool.destroy();
     if (this.el) delete this.el.__view__;
     if (this.$el) this.remove();
-    delete this._onWindowResize;
-    delete this.models;
-    delete this.el;
-    delete this.$el;
+    this._onWindowResize = null;
+    this.$listContainer = null;
+    this.$scrollerContainer = null;
+    this.models = null;
+    this.$el = null;
+    this.el = null;
   }
 
   setModels(models = []) {
@@ -227,8 +223,7 @@ export default class BufferedListView extends View {
       throw new Error(`The model.${this.idModelPropertyName} is undefined. There is no chance to show more than one view.`);
     }
     if (!view) {
-      view = this.viewsPool.borrows();
-      if (!view) throw new Error(`No views availables. Actually borrowed: ${ this.viewsPool.getCountBorrowed() }`);
+      view = new (this.ItemConstructor)();
       view.model = model;
       view.indexInModelList = indexInModelList;
       view.render();
@@ -253,7 +248,7 @@ export default class BufferedListView extends View {
   **/
   removeView(view) {
     this.viewsMap.delete(view.model[this.idModelPropertyName]);
-    this.viewsPool.returns(view);
+    view.destroy();
   }
 
   /**
@@ -310,7 +305,6 @@ export default class BufferedListView extends View {
   renderDebugInfos() {
     const [ startIndex, endIndex ] = this.defineRangeOfModelsVisibles();
     $('#debug-container').html(`
-<div>Actual pool usage: ${this.viewsPool.getCountBorrowed()} / ${this.viewsPool.getCountAvailables()}</div>
 <div>Visible range: (${startIndex}, ${endIndex})</div>
 <div>Visible models: (${Math.max(0, startIndex - this.visibleOutboundItemsCount)}, ${Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount)})`);
   }
