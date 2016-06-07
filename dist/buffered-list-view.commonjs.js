@@ -447,12 +447,18 @@ var BufferedListView = function (_View) {
         throw new Error('The model.' + this.idModelPropertyName + ' is undefined. There is no chance to show more than one view.');
       }
       if (!view) {
-        view = new this.ItemConstructor();
-        view.model = model;
-        view.indexInModelList = indexInModelList;
-        view.render();
+        view = this.createView(model, indexInModelList);
         this.viewsMap.set(model[this.idModelPropertyName], view);
       }
+      return view;
+    }
+  }, {
+    key: 'createView',
+    value: function createView(model, indexInModelList) {
+      var view = new this.ItemConstructor();
+      view.model = model;
+      view.indexInModelList = indexInModelList;
+      view.render();
       return view;
     }
 

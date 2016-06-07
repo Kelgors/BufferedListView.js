@@ -222,12 +222,17 @@ export default class BufferedListView extends View {
       throw new Error(`The model.${this.idModelPropertyName} is undefined. There is no chance to show more than one view.`);
     }
     if (!view) {
-      view = new (this.ItemConstructor)();
-      view.model = model;
-      view.indexInModelList = indexInModelList;
-      view.render();
+      view = this.createView(model, indexInModelList);
       this.viewsMap.set(model[this.idModelPropertyName], view);
     }
+    return view;
+  }
+
+  createView(model, indexInModelList) {
+    const view = new (this.ItemConstructor)();
+    view.model = model;
+    view.indexInModelList = indexInModelList;
+    view.render();
     return view;
   }
 
