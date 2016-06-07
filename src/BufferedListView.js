@@ -1,6 +1,5 @@
 import $ from 'jquery';
 import Bullet from 'bullet';
-import Pool from 'Pool';
 import View from 'View';
 import BufferedListItemView from 'BufferedListItemView';
 import { createConstantArray } from 'arrays';
