@@ -1,6 +1,6 @@
 {
   "name": "buffered-list-view.js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A list view to show only visible item views",
   "main": "dist/index.js",
   "authors": [
@@ -22,7 +22,6 @@
     "index2.html"
   ],
   "dependencies": {
-    "pool.js": "master",
     "jquery": "^2.2.2",
     "bullet": "^2.2.1"
   },
