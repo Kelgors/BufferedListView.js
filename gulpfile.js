@@ -9,7 +9,7 @@ const concat = require('gulp-concat');
 const connect = require('gulp-connect');
 
 const moduleTypes = [ 'amd', 'systemjs', 'commonjs' ];
-const sourceFiles = [ 'bower_components/pool.js/src/Pool.js', 'src/*.js'];
+const sourceFiles = [ 'src/arrays.js', 'src/View.js', 'src/BufferedListItemView.js', 'src/BufferedListView.js' ];
 const outputFileName = 'buffered-list-view';
 
 const defaultConfig = {

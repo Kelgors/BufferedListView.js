@@ -1,9 +1,36 @@
+"use strict";
+
+System.register("arrays", [], function (_export, _context) {
+  return {
+    setters: [],
+    execute: function () {
+      function createConstantArray() {
+        for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
+          elements[_key] = arguments[_key];
+        }
+
+        // create array with predefined properties 0, 1, 2, n...
+        var array = new Array(elements.length);
+        for (var index = 0; index < elements.length; index++) {
+          // typeof array === 'object' =D so,
+          // Assign each elements as enumerable non-writable
+          Object.defineProperty(array, index, {
+            configurable: false, writable: false, enumerable: true,
+            value: elements[index]
+          });
+        }
+        return array;
+      }
+      _export("createConstantArray", createConstantArray);
+
+      ;
+    }
+  };
+});
 'use strict';
 
-System.register('Pool', [], function (_export, _context) {
-  "use strict";
-
-  var _createClass, Pool;
+System.register('View', ['jquery'], function (_export, _context) {
+  var jQuery, _createClass, View;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -11,15 +38,10 @@ System.register('Pool', [], function (_export, _context) {
     }
   }
 
-  function set_constant(instance, key, value) {
-    Object.defineProperty(instance, key, {
-      writable: false, configurable: false,
-      value: value
-    });
-  }
-
   return {
-    setters: [],
+    setters: [function (_jquery) {
+      jQuery = _jquery.default;
+    }],
     execute: function () {
       _createClass = function () {
         function defineProperties(target, props) {
@@ -39,143 +61,66 @@ System.register('Pool', [], function (_export, _context) {
         };
       }();
 
-      Pool = function () {
-        function Pool(ObjectConstructor) {
-          var size = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
-
-          var _ref = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-          var _ref$clearMethodName = _ref.clearMethodName;
-          var clearMethodName = _ref$clearMethodName === undefined ? null : _ref$clearMethodName;
-          var _ref$destroyMethodNam = _ref.destroyMethodName;
-          var destroyMethodName = _ref$destroyMethodNam === undefined ? null : _ref$destroyMethodNam;
-          var _ref$isFactory = _ref.isFactory;
-          var isFactory = _ref$isFactory === undefined ? false : _ref$isFactory;
-
-          _classCallCheck(this, Pool);
-
-          this.size = size;
-          set_constant(this, 'ObjectConstructor', ObjectConstructor);
-          set_constant(this, 'objectClearMethodName', clearMethodName);
-          set_constant(this, 'objectDestroyMethodName', destroyMethodName);
-          set_constant(this, 'objectConstructorIsFactory', isFactory);
-          set_constant(this, 'borrowedObjects', []);
-          set_constant(this, 'availableObjects', []);
-          set_constant(this, 'awaitCallbacks', []);
-        }
-
-        _createClass(Pool, [{
-          key: 'destroy',
-          value: function destroy() {
-            this._destroyChildren(this.borrowedObjects);
-            this._destroyChildren(this.availableObjects);
-            if (this.awaitCallbacks.length) {
-              this.awaitCallbacks.splice(0, this.awaitCallbacks.length);
-            }
-          }
-        }, {
-          key: '_destroyChildren',
-          value: function _destroyChildren(arrayOfObjects) {
-            var methodName = this.objectDestroyMethodName || this.objectClearMethodName;
-            if (!methodName) {
-              // just empty it
-              arrayOfObjects.splice(0, arrayOfObjects.length);
-              return;
-            }
-            var object = void 0;
-            while (object = arrayOfObjects.pop()) {
-              try {
-                object[methodName].call(object);
-              } catch (err) {
-                if (typeof console === 'undefined') throw err;
-                console.log('Error during destroy');
-              }
-            }
-          }
-        }, {
-          key: 'await',
-          value: function await() {
-            var _this = this;
-
-            if (this.hasAvailables()) return Promise.resolve(this.borrows());
-            return new Promise(function (resolve, reject) {
-              _this.awaitCallbacks.push(resolve);
-            });
-          }
-        }, {
-          key: 'borrows',
-          value: function borrows() {
-            var object = null;
-            if (this.hasAvailables()) {
-              if (this.availableObjects.length === 0) {
-                object = this.objectConstructorIsFactory ? this.ObjectConstructor() : new this.ObjectConstructor();
-              } else {
-                object = this.availableObjects.pop();
-              }
-              this.borrowedObjects.push(object);
-            }
-            if (this._onObjectBorrowed) this._onObjectBorrowed();
-            return object;
-          }
-        }, {
-          key: 'returns',
-          value: function returns(borrowedObject) {
-            if (!this.objectConstructorIsFactory && !(borrowedObject instanceof this.ObjectConstructor)) {
-              throw new Error('Can\'t return object which is not a ' + this.ObjectConstructor.name);
-            }
-            var index = this.borrowedObjects.indexOf(borrowedObject);
-            if (index === -1) {
-              if (this.availableObjects.indexOf(borrowedObject) > -1) {
-                throw new Error(this.ObjectConstructor.name + ' already returned !');
-              }
-              throw new Error('Object given in Pool#returns() is not referenced in this Pool instance.');
-            }
-            this.borrowedObjects.splice(index, 1);
-            if (this.objectClearMethodName !== null) {
-              try {
-                borrowedObject[this.objectClearMethodName].call(borrowedObject);
-              } catch (err) {
-                if (typeof console === 'undefined') throw err;
-                console.log('Unable to call method ' + this.objectClearMethodName + ' on object instance ' + String(borrowedObject));
-              }
-            }
-            this.availableObjects.push(borrowedObject);
-            if (this._onObjectReturned) this._onObjectReturned();
-          }
-        }, {
-          key: 'hasAvailables',
-          value: function hasAvailables() {
-            return this.size === -1 || this.borrowedObjects.length < this.size;
-          }
-        }, {
-          key: 'getCountAvailables',
-          value: function getCountAvailables() {
-            return (this.size === -1 ? Number.MAX_SAFE_INTEGER : this.size) - this.getCountBorrowed();
-          }
-        }, {
-          key: 'getCountBorrowed',
-          value: function getCountBorrowed() {
-            return this.borrowedObjects.length;
-          }
-        }, {
-          key: 'toString',
-          value: function toString() {
-            return 'Pool<' + this.ObjectConstructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
-          }
-        }, {
-          key: '_onObjectReturned',
-          value: function _onObjectReturned() {
-            if (this.awaitCallbacks.length && this.hasAvailables()) {
-              var resolver = this.awaitCallbacks.shift();
-              resolver(this.borrows());
-            }
+      View = function () {
+        _createClass(View, [{
+          key: 'isAttached',
+          get: function get() {
+            return !!this.el && !!this.el.parentNode;
           }
         }]);
 
-        return Pool;
+        function View() {
+          _classCallCheck(this, View);
+
+          this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
+          this.$el.addClass('view');
+          this.el.__view__ = this;
+        }
+
+        _createClass(View, [{
+          key: 'destroy',
+          value: function destroy() {
+            if (this.el) {
+              this.el.__view__ = null;
+              this.remove();
+            }
+            this.el = this.$el = this.model = null;
+          }
+        }, {
+          key: '$',
+          value: function $() {
+            return this.$el.find.apply(this.$el, arguments);
+          }
+        }, {
+          key: 'clear',
+          value: function clear() {
+            this.remove();
+            this.el.innerHTML = '';
+            this.model = null;
+          }
+        }, {
+          key: 'remove',
+          value: function remove() {
+            if (this.el.parentNode) {
+              this.el.parentNode.removeChild(this.el);
+            }
+          }
+        }, {
+          key: 'template',
+          value: function template() {
+            return String(this.indexInModelList);
+          }
+        }, {
+          key: 'render',
+          value: function render() {
+            this.el.innerHTML = this.template();
+          }
+        }]);
+
+        return View;
       }();
 
-      _export('default', Pool);
+      _export('default', View);
     }
   };
 });
@@ -634,310 +579,6 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
       }(View);
 
       _export('default', BufferedListView);
-    }
-  };
-});
-'use strict';
-
-System.register('View', ['jquery'], function (_export, _context) {
-  var jQuery, _createClass, View;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  return {
-    setters: [function (_jquery) {
-      jQuery = _jquery.default;
-    }],
-    execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      View = function () {
-        _createClass(View, [{
-          key: 'isAttached',
-          get: function get() {
-            return !!this.el && !!this.el.parentNode;
-          }
-        }]);
-
-        function View() {
-          _classCallCheck(this, View);
-
-          this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
-          this.$el.addClass('view');
-          this.el.__view__ = this;
-        }
-
-        _createClass(View, [{
-          key: 'destroy',
-          value: function destroy() {
-            if (this.el) {
-              this.el.__view__ = null;
-              this.remove();
-            }
-            this.el = this.$el = this.model = null;
-          }
-        }, {
-          key: '$',
-          value: function $() {
-            return this.$el.find.apply(this.$el, arguments);
-          }
-        }, {
-          key: 'clear',
-          value: function clear() {
-            this.remove();
-            this.el.innerHTML = '';
-            this.model = null;
-          }
-        }, {
-          key: 'remove',
-          value: function remove() {
-            if (this.el.parentNode) {
-              this.el.parentNode.removeChild(this.el);
-            }
-          }
-        }, {
-          key: 'template',
-          value: function template() {
-            return String(this.indexInModelList);
-          }
-        }, {
-          key: 'render',
-          value: function render() {
-            this.el.innerHTML = this.template();
-          }
-        }]);
-
-        return View;
-      }();
-
-      _export('default', View);
-    }
-  };
-});
-"use strict";
-
-System.register("arrays", [], function (_export, _context) {
-  return {
-    setters: [],
-    execute: function () {
-      function createConstantArray() {
-        for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
-          elements[_key] = arguments[_key];
-        }
-
-        // create array with predefined properties 0, 1, 2, n...
-        var array = new Array(elements.length);
-        for (var index = 0; index < elements.length; index++) {
-          // typeof array === 'object' =D so,
-          // Assign each elements as enumerable non-writable
-          Object.defineProperty(array, index, {
-            configurable: false, writable: false, enumerable: true,
-            value: elements[index]
-          });
-        }
-        return array;
-      }
-      _export("createConstantArray", createConstantArray);
-
-      ;
-    }
-  };
-});
-'use strict';
-
-System.register('buffered-list-view.jquery', ['jquery', 'BufferedListView', 'BufferedListItemView'], function (_export, _context) {
-  var $, BufferedListView, BufferedListItemView, _createClass, AUTHORIZED_LISTVIEW_OPTIONS_KEYS, jQueryBufferedListViewContainer;
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  return {
-    setters: [function (_jquery) {
-      $ = _jquery.default;
-    }, function (_BufferedListView) {
-      BufferedListView = _BufferedListView.default;
-    }, function (_BufferedListItemView2) {
-      BufferedListItemView = _BufferedListItemView2.default;
-    }],
-    execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      AUTHORIZED_LISTVIEW_OPTIONS_KEYS = ["listContainerSelector", "scrollerContainerSelector", "listHeight", "listItemHeight", "visibleOutboundItemsCount", "models", "maxPoolSize", "idModelPropertyName", "ItemConstructor"];
-
-      jQueryBufferedListViewContainer = function () {
-        function jQueryBufferedListViewContainer($element) {
-          var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-          _classCallCheck(this, jQueryBufferedListViewContainer);
-
-          this.$container = $element;
-          this.options = options;
-          this.createListView();
-          this.render();
-        }
-
-        _createClass(jQueryBufferedListViewContainer, [{
-          key: 'getAttribute',
-          value: function getAttribute(key) {
-            return this.options[key];
-          }
-        }, {
-          key: 'setAttribute',
-          value: function setAttribute(key, value) {
-            var oldValue = this.options[key];
-            this.options[key] = value;
-            if (typeof this['_' + key + 'Changed'] === 'function') {
-              this['_' + key + 'Changed'].call(this, oldValue, value);
-            }
-          }
-        }, {
-          key: 'createListView',
-          value: function createListView() {
-            options.ItemConstructor = this.generateItemView(this.getAttribute('template'));
-            this.listview = new BufferedListView(options);
-          }
-        }, {
-          key: 'recreateListView',
-          value: function recreateListView() {
-            if (this.listview) this.listview.destroy();
-            this.createListView();
-            this.render();
-          }
-        }, {
-          key: 'render',
-          value: function render() {
-            if (this.listview.$el.parent().get(0) !== this.$container.get(0)) {
-              this.$container.append(this.listview.$el);
-            }
-            this.listview.render();
-          }
-        }, {
-          key: 'generateItemView',
-          value: function generateItemView(template) {
-            var $$ItemView = function (_BufferedListItemView) {
-              _inherits($$ItemView, _BufferedListItemView);
-
-              function $$ItemView() {
-                _classCallCheck(this, $$ItemView);
-
-                return _possibleConstructorReturn(this, Object.getPrototypeOf($$ItemView).apply(this, arguments));
-              }
-
-              _createClass($$ItemView, [{
-                key: 'clear',
-                value: function clear() {
-                  this.model = null;
-                }
-              }]);
-
-              return $$ItemView;
-            }(BufferedListItemView);
-
-            $$ItemView.CLEAR_METHOD = 'clear';
-            $$ItemView.DESTROY_METHOD = 'clear';
-            $$ItemView.prototype.template = template;
-            return $$ItemView;
-          }
-        }, {
-          key: '_htmlChanged',
-          value: function _htmlChanged(oldValue, newValue) {
-            if (oldValue !== newValue) {
-              this.recreateListView();
-            }
-          }
-        }, {
-          key: '_dataChanged',
-          value: function _dataChanged(oldValue, newValue) {
-            this.listview.setModels(newValue);
-          }
-        }]);
-
-        return jQueryBufferedListViewContainer;
-      }();
-
-      /*
-      * $('#list-view-container').bufferedListView({
-      *   data: []
-      * });
-      * set $('#list-view-container').bufferedListView('data', []);
-      * get $('#list-view-container').bufferedListView('data');
-      */
-      $.fn.bufferedListView = function bufferedListView(key, value) {
-        if (typeof key === 'string') {
-          if (!this.prop('buffered-list-view')) return this;
-          if (value !== undefined) {
-            this.prop('buffered-list-view').setAttribute(key, value);
-            return this;
-          }
-          return this.prop('buffered-list-view').getAttribute(key);
-        }
-        var options = key;
-        this.prop('buffered-list-view', new jQueryBufferedListViewContainer(this, options));
-        return this;
-      };
     }
   };
 });
