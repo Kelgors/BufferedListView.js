@@ -7,5 +7,4 @@ export default class BufferedListItemView extends View {
   }
 }
 BufferedListItemView.tagName = 'li';
-BufferedListItemView.CLEAR_METHOD = 'clear';
 BufferedListItemView.DESTROY_METHOD = 'destroy';

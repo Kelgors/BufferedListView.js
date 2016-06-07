@@ -247,7 +247,7 @@ export default class BufferedListView extends View {
   **/
   removeView(view) {
     this.viewsMap.delete(view.model[this.idModelPropertyName]);
-    view.destroy();
+    view[this.ItemConstructor.DESTROY_METHOD]();
   }
 
   /**

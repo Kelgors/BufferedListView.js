@@ -5,7 +5,6 @@ define('city_list/CityItemView', [ 'BufferedListItemView', 'exports' ], function
     BufferedListItemView.call(this);
   }
 
-  CityItemView.CLEAR_METHOD = BufferedListItemView.CLEAR_METHOD;
   CityItemView.DESTROY_METHOD = BufferedListItemView.DESTROY_METHOD;
 
   CityItemView.prototype = Object.create(BufferedListItemView.prototype, {

@@ -141,7 +141,6 @@ var Pool = function () {
   }, {
     key: '_onObjectReturned',
     value: function _onObjectReturned() {
-      console.log('_onObjectReturned');
       if (this.awaitCallbacks.length && this.hasAvailables()) {
         var resolver = this.awaitCallbacks.shift();
         resolver(this.borrows());
@@ -189,7 +188,6 @@ var BufferedListItemView = function (_View) {
 exports.default = BufferedListItemView;
 
 BufferedListItemView.tagName = 'li';
-BufferedListItemView.CLEAR_METHOD = 'clear';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
 'use strict';
 
@@ -208,10 +206,6 @@ var _jquery2 = _interopRequireDefault(_jquery);
 var _bullet = require('bullet');
 
 var _bullet2 = _interopRequireDefault(_bullet);
-
-var _Pool = require('Pool');
-
-var _Pool2 = _interopRequireDefault(_Pool);
 
 var _View2 = require('View');
 
@@ -243,7 +237,6 @@ var BufferedListView = function (_View) {
    * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
    * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
    * @param {Array} options.models                      - The list of models to be rendered
-   * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
    * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
    * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
   **/
@@ -273,11 +266,7 @@ var BufferedListView = function (_View) {
     _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
     _this.models = options.models || [];
-    var ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
-    _this.viewsPool = new _Pool2.default(ItemConstructor, options.maxPoolSize || -1, {
-      clearMethodName: ItemConstructor.CLEAR_METHOD,
-      destroyMethodName: ItemConstructor.DESTROY_METHOD
-    });
+    _this.ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
     _this.viewsMap = new Map();
 
     _this._onWindowResize = _this.onResize.bind(_this);
@@ -299,13 +288,14 @@ var BufferedListView = function (_View) {
     key: 'destroy',
     value: function destroy() {
       (0, _jquery2.default)(window).off('resize', this._onWindowResize);
-      this.viewsPool.destroy();
       if (this.el) delete this.el.__view__;
       if (this.$el) this.remove();
-      delete this._onWindowResize;
-      delete this.models;
-      delete this.el;
-      delete this.$el;
+      this._onWindowResize = null;
+      this.$listContainer = null;
+      this.$scrollerContainer = null;
+      this.models = null;
+      this.$el = null;
+      this.el = null;
     }
   }, {
     key: 'setModels',
@@ -512,8 +502,7 @@ var BufferedListView = function (_View) {
         throw new Error('The model.' + this.idModelPropertyName + ' is undefined. There is no chance to show more than one view.');
       }
       if (!view) {
-        view = this.viewsPool.borrows();
-        if (!view) throw new Error('No views availables. Actually borrowed: ' + this.viewsPool.getCountBorrowed());
+        view = new this.ItemConstructor();
         view.model = model;
         view.indexInModelList = indexInModelList;
         view.render();
@@ -544,7 +533,7 @@ var BufferedListView = function (_View) {
     key: 'removeView',
     value: function removeView(view) {
       this.viewsMap.delete(view.model[this.idModelPropertyName]);
-      this.viewsPool.returns(view);
+      view[this.ItemConstructor.DESTROY_METHOD]();
     }
 
     /**
@@ -621,7 +610,7 @@ var BufferedListView = function (_View) {
       var startIndex = _defineRangeOfModelsV2[0];
       var endIndex = _defineRangeOfModelsV2[1];
 
-      (0, _jquery2.default)('#debug-container').html('\n<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
+      (0, _jquery2.default)('#debug-container').html('\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
     }
   }]);
 

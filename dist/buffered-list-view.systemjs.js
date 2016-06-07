@@ -165,7 +165,6 @@ System.register('Pool', [], function (_export, _context) {
         }, {
           key: '_onObjectReturned',
           value: function _onObjectReturned() {
-            console.log('_onObjectReturned');
             if (this.awaitCallbacks.length && this.hasAvailables()) {
               var resolver = this.awaitCallbacks.shift();
               resolver(this.borrows());
@@ -238,15 +237,14 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
       _export('default', BufferedListItemView);
 
       BufferedListItemView.tagName = 'li';
-      BufferedListItemView.CLEAR_METHOD = 'clear';
       BufferedListItemView.DESTROY_METHOD = 'destroy';
     }
   };
 });
 'use strict';
 
-System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'BufferedListItemView', 'arrays'], function (_export, _context) {
-  var $, Bullet, Pool, View, BufferedListItemView, createConstantArray, _slicedToArray, _createClass, BufferedListView;
+System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListItemView', 'arrays'], function (_export, _context) {
+  var $, Bullet, View, BufferedListItemView, createConstantArray, _slicedToArray, _createClass, BufferedListView;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -283,8 +281,6 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
       $ = _jquery.default;
     }, function (_bullet) {
       Bullet = _bullet.default;
-    }, function (_Pool) {
-      Pool = _Pool.default;
     }, function (_View2) {
       View = _View2.default;
     }, function (_BufferedListItemView) {
@@ -361,7 +357,6 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
          * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
          * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
          * @param {Array} options.models                      - The list of models to be rendered
-         * @param {Number} options.maxPoolSize                - The max views at the same time. The pool is working in lazy loading. If you put 100 and only 36 items are shown, only 36 item views are created
          * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
          * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
         **/
@@ -391,11 +386,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
           _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
 
           _this.models = options.models || [];
-          var ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
-          _this.viewsPool = new Pool(ItemConstructor, options.maxPoolSize || -1, {
-            clearMethodName: ItemConstructor.CLEAR_METHOD,
-            destroyMethodName: ItemConstructor.DESTROY_METHOD
-          });
+          _this.ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
           _this.viewsMap = new Map();
 
           _this._onWindowResize = _this.onResize.bind(_this);
@@ -417,13 +408,14 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
           key: 'destroy',
           value: function destroy() {
             $(window).off('resize', this._onWindowResize);
-            this.viewsPool.destroy();
             if (this.el) delete this.el.__view__;
             if (this.$el) this.remove();
-            delete this._onWindowResize;
-            delete this.models;
-            delete this.el;
-            delete this.$el;
+            this._onWindowResize = null;
+            this.$listContainer = null;
+            this.$scrollerContainer = null;
+            this.models = null;
+            this.$el = null;
+            this.el = null;
           }
         }, {
           key: 'setModels',
@@ -559,8 +551,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
               throw new Error('The model.' + this.idModelPropertyName + ' is undefined. There is no chance to show more than one view.');
             }
             if (!view) {
-              view = this.viewsPool.borrows();
-              if (!view) throw new Error('No views availables. Actually borrowed: ' + this.viewsPool.getCountBorrowed());
+              view = new this.ItemConstructor();
               view.model = model;
               view.indexInModelList = indexInModelList;
               view.render();
@@ -579,7 +570,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
           key: 'removeView',
           value: function removeView(view) {
             this.viewsMap.delete(view.model[this.idModelPropertyName]);
-            this.viewsPool.returns(view);
+            view[this.ItemConstructor.DESTROY_METHOD]();
           }
         }, {
           key: 'addViews',
@@ -635,7 +626,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'Pool', 'View', 'Buffer
             var startIndex = _defineRangeOfModelsV2[0];
             var endIndex = _defineRangeOfModelsV2[1];
 
-            $('#debug-container').html('\n<div>Actual pool usage: ' + this.viewsPool.getCountBorrowed() + ' / ' + this.viewsPool.getCountAvailables() + '</div>\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
+            $('#debug-container').html('\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
           }
         }]);
 

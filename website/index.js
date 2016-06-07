@@ -17,7 +17,9 @@ require([ 'jquery' ], function (jQuery) {
 
       if ('style' in conf) addStyle(conf['style']);
 
-      require([ conf['ListConstructor'] ], function (importListView) {
+      const constructorName = conf['ListConstructor'];
+
+      require([ constructorName ], function (importListView) {
         var ListView = importListView.default;
 
         $.getJSON(conf['data'])
