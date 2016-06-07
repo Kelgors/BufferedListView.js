@@ -144,7 +144,7 @@ export default class BufferedListView extends View {
    * Update the scroller height. It results that the list scrolling is adapted to its content
   **/
   updateListScrollerHeight() {
-    this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight);
+    this.$scrollerContainer.find('.list-content').height(`${this.models.length * this.listItemHeight}px`);
   }
 
   /**

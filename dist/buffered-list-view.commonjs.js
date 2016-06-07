@@ -344,7 +344,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'updateListScrollerHeight',
     value: function updateListScrollerHeight() {
-      this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight);
+      this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight + 'px');
     }
 
     /**

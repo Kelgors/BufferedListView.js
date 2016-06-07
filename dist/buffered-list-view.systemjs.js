@@ -427,7 +427,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
         }, {
           key: 'updateListScrollerHeight',
           value: function updateListScrollerHeight() {
-            this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight);
+            this.$scrollerContainer.find('.list-content').height(this.models.length * this.listItemHeight + 'px');
           }
         }, {
           key: 'defineRangeOfModelsVisibles',
