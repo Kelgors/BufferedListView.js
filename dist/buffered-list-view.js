@@ -1,4 +1,218 @@
-"use strict";function _possibleConstructorReturn(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function createConstantArray(){for(var e=arguments.length,t=Array(e),i=0;e>i;i++)t[i]=arguments[i];for(var n=new Array(t.length),r=0;r<t.length;r++)Object.defineProperty(n,r,{configurable:!1,writable:!1,enumerable:!0,value:t[r]});return n}var _slicedToArray=function(){function e(e,t){var i=[],n=!0,r=!1,s=void 0;try{for(var o,l=e[Symbol.iterator]();!(n=(o=l.next()).done)&&(i.push(o.value),!t||i.length!==t);n=!0);}catch(a){r=!0,s=a}finally{try{!n&&l["return"]&&l["return"]()}finally{if(r)throw s}}return i}return function(t,i){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,i);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}(),_createClass=function(){function e(e,t){for(var i=0;i<t.length;i++){var n=t[i];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,i,n){return i&&e(t.prototype,i),n&&e(t,n),t}}(),View=function(){function e(){_classCallCheck(this,e),this.$el=jQuery(this.el=document.createElement(this.constructor.tagName||"div")),this.$el.addClass("view"),this.el.__view__=this}return _createClass(e,[{key:"isAttached",get:function(){return!!this.el&&!!this.el.parentNode}}]),_createClass(e,[{key:"destroy",value:function(){this.el&&(this.el.__view__=null,this.remove()),this.el=this.$el=this.model=null}},{key:"$",value:function(){return this.$el.find.apply(this.$el,arguments)}},{key:"clear",value:function(){this.remove(),this.el.innerHTML="",this.model=null}},{key:"remove",value:function(){this.el.parentNode&&this.el.parentNode.removeChild(this.el)}},{key:"template",value:function(){return String(this.indexInModelList)}},{key:"render",value:function(){this.el.innerHTML=this.template()}}]),e}(),BufferedListItemView=function(e){function t(){_classCallCheck(this,t);var e=_possibleConstructorReturn(this,Object.getPrototypeOf(t).call(this));return e.$el.addClass("item-view"),e}return _inherits(t,e),t}(View);BufferedListItemView.tagName="li",BufferedListItemView.DESTROY_METHOD="destroy";var BufferedListView=function(e){function t(){var e=arguments.length<=0||void 0===arguments[0]?{}:arguments[0];_classCallCheck(this,t);var i=_possibleConstructorReturn(this,Object.getPrototypeOf(t).call(this,e));return $.extend(i,Bullet),Object.defineProperty(i,"_currentVisibleRange",{configurable:!0,writable:!1,value:createConstantArray(0,0)}),i.isRendered=!1,i.listContainerSelector=e.listContainerSelector||".list-container:first > .list-display",i.scrollerContainerSelector=e.scrollerContainerSelector||".list-container:first",i.scrollPositionY=0,i.listHeight=e.listHeight||"auto",i.listHeightAutoMode="auto"===i.listHeight,i.listItemHeight=e.listItemHeight,i.idModelPropertyName=e.idModelPropertyName||"id",i.visibleOutboundItemsCount="number"!=typeof e.visibleOutboundItemsCount?2:e.visibleOutboundItemsCount,i.models=e.models||[],i.ItemConstructor=e.ItemConstructor||i.getItemConstructor(),i.viewsMap=new Map,i._onWindowResize=i.onResize.bind(i),$(window).on("resize",i._onWindowResize),i.listHeightAutoMode&&i.once("attach",function(){i.listHeight=i.queryListHeight(),i.isRendered&&(i.updateListScrollerHeight(),i.renderVisibleItems())}),i}return _inherits(t,e),_createClass(t,[{key:"destroy",value:function(){$(window).off("resize",this._onWindowResize),this.el&&delete this.el.__view__,this.$el&&this.remove(),this._onWindowResize=null,this.$listContainer=null,this.$scrollerContainer=null,this.models=null,this.$el=null,this.el=null}},{key:"setModels",value:function(){var e=arguments.length<=0||void 0===arguments[0]?[]:arguments[0];this.models=e,this.updateListScrollerHeight(),this.renderVisibleItems()}},{key:"getItemConstructor",value:function(){return BufferedListItemView}},{key:"template",value:function(){return'<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>'}},{key:"render",value:function(){this.$el.html(this.template()),this.isRendered=!0,this.$listContainer=this.$(this.listContainerSelector),this.$scrollerContainer=this.$(this.scrollerContainerSelector),this.$scrollerContainer.on("scroll",this.onScroll.bind(this)),this.isAttached&&(this.listHeightAutoMode&&(this.listHeight=this.queryListHeight()),this.updateListScrollerHeight(),this.renderVisibleItems())}},{key:"attachTo",value:function(e){$(e).append(this.$el),this.el.parentNode&&this.trigger("attach")}},{key:"scrollToIndex",value:function(e){var t=arguments.length<=1||void 0===arguments[1]?{}:arguments[1],i=e*this.listItemHeight;t.animate?this.$scrollerContainer.animate({scrollTop:i},t.duration||300):this.$scrollerContainer.scrollTop(i)}},{key:"queryListHeight",value:function(){return this.$el.outerHeight()}},{key:"updateListScrollerHeight",value:function(){this.$scrollerContainer.find(".list-content").height(this.models.length*this.listItemHeight)}},{key:"defineRangeOfModelsVisibles",value:function(){var e=Math.floor(this.scrollPositionY/this.listItemHeight),t=Math.ceil(this.listHeight/this.listItemHeight),i=Math.min(this.models.length-1,e+t);return[e,i]}},{key:"renderItemsRange",value:function(e){var t=this,i=_slicedToArray(e,2),n=i[0],r=i[1];if(this._currentVisibleRange[0]!==n||this._currentVisibleRange[1]!==r){var s=Math.max(0,n-this.visibleOutboundItemsCount),o=Math.min(this.models.length-1,r+this.visibleOutboundItemsCount),l=this.models.slice(s,o),a=l.map(function(e,i){var n=t.getView(e,s+Number(i));return n.el.setAttribute("data-index",n.indexInModelList),n});this.renderViews(a),Object.defineProperty(this,"_currentVisibleRange",{configurable:!0,writable:!1,value:createConstantArray(n,r)}),this.constructor.DEV_MODE&&this.renderDebugInfos()}}},{key:"renderVisibleItems",value:function(){this.renderItemsRange(this.defineRangeOfModelsVisibles())}},{key:"renderViews",value:function(e){var t=this.$listContainer.children().toArray().map(function(e){return e.__view__});if(0===t.length)this.addViews(e);else{var i=t.filter(function(t){return!e.includes(t)}),n=e;this.removeViews(i),this.addViews(n)}}},{key:"getView",value:function(e,t){var i=this.viewsMap.get(e[this.idModelPropertyName]);if("undefined"==typeof this.idModelPropertyName)throw new Error("BufferedListView#idModelPropertyName must be defined");if("undefined"==typeof e[this.idModelPropertyName])throw new Error("The model."+this.idModelPropertyName+" is undefined. There is no chance to show more than one view.");return i||(i=new this.ItemConstructor,i.model=e,i.indexInModelList=t,i.render(),this.viewsMap.set(e[this.idModelPropertyName],i)),i}},{key:"removeViews",value:function(e){for(var t=0;t<e.length;t++)this.removeView(e[t])}},{key:"removeView",value:function(e){this.viewsMap["delete"](e.model[this.idModelPropertyName]),e[this.ItemConstructor.DESTROY_METHOD]()}},{key:"addViews",value:function(e){for(var t=0;t<e.length;t++)this.addView(e[t],t)}},{key:"addView",value:function(e,t){var i=this.$listContainer,n=i.children(),r=this.listItemHeight*e.indexInModelList;e.el.style.top=String(r)+"px",n.length<=t?i.append(e.el):0===t?i.prepend(e.el):$(i.children().get(t)).after(e.el)}},{key:"onResize",value:function(e){this._onResize(e),this.renderVisibleItems()}},{key:"onScroll",value:function(e){this._onScroll(e)}},{key:"_onResize",value:function(e){this.listHeightAutoMode&&(this.listHeight=this.queryListHeight())}},{key:"_onScroll",value:function(e){this.scrollPositionY=this.$scrollerContainer.scrollTop(),this.renderVisibleItems()}},{key:"renderDebugInfos",value:function(){var e=this.defineRangeOfModelsVisibles(),t=_slicedToArray(e,2),i=t[0],n=t[1];$("#debug-container").html("\n<div>Visible range: ("+i+", "+n+")</div>\n<div>Visible models: ("+Math.max(0,i-this.visibleOutboundItemsCount)+", "+Math.min(this.models.length-1,n+this.visibleOutboundItemsCount)+")")}}]),t}(View);essary
+'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function createConstantArray() {
+  for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
+    elements[_key] = arguments[_key];
+  }
+
+  // create array with predefined properties 0, 1, 2, n...
+  var array = new Array(elements.length);
+  for (var index = 0; index < elements.length; index++) {
+    // typeof array === 'object' =D so,
+    // Assign each elements as enumerable non-writable
+    Object.defineProperty(array, index, {
+      configurable: false, writable: false, enumerable: true,
+      value: elements[index]
+    });
+  }
+  return array;
+};
+
+var View = function () {
+  _createClass(View, [{
+    key: 'isAttached',
+    get: function get() {
+      return !!this.el && !!this.el.parentNode;
+    }
+  }]);
+
+  function View() {
+    _classCallCheck(this, View);
+
+    this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
+    this.$el.addClass('view');
+    this.el.__view__ = this;
+  }
+
+  _createClass(View, [{
+    key: 'destroy',
+    value: function destroy() {
+      if (this.el) {
+        this.el.__view__ = null;
+        this.remove();
+      }
+      this.el = this.$el = this.model = null;
+    }
+  }, {
+    key: '$',
+    value: function $() {
+      return this.$el.find.apply(this.$el, arguments);
+    }
+  }, {
+    key: 'clear',
+    value: function clear() {
+      this.remove();
+      this.el.innerHTML = '';
+      this.model = null;
+    }
+  }, {
+    key: 'remove',
+    value: function remove() {
+      if (this.el.parentNode) {
+        this.el.parentNode.removeChild(this.el);
+      }
+    }
+  }, {
+    key: 'template',
+    value: function template() {
+      return String(this.indexInModelList);
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      this.el.innerHTML = this.template();
+    }
+  }]);
+
+  return View;
+}();
+
+var BufferedListItemView = function (_View) {
+  _inherits(BufferedListItemView, _View);
+
+  function BufferedListItemView() {
+    _classCallCheck(this, BufferedListItemView);
+
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListItemView).call(this));
+
+    _this.$el.addClass('item-view');
+    return _this;
+  }
+
+  return BufferedListItemView;
+}(View);
+
+BufferedListItemView.tagName = 'li';
+BufferedListItemView.DESTROY_METHOD = 'destroy';
+
+var BufferedListView = function (_View2) {
+  _inherits(BufferedListView, _View2);
+
+  /**
+   *
+   * @param {Object} options
+   * @param {String} options.listContainerSelector      - Selector where to append child
+   * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
+   * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
+   * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
+   * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
+   * @param {Array} options.models                      - The list of models to be rendered
+   * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
+   * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
+  **/
+
+  function BufferedListView() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    _classCallCheck(this, BufferedListView);
+
+    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
+
+    $.extend(_this2, Bullet);
+    Object.defineProperty(_this2, '_currentVisibleRange', {
+      configurable: true, writable: false,
+      value: createConstantArray(0, 0)
+    });
+
+    _this2.isRendered = false;
+    _this2.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
+    _this2.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
+    _this2.scrollPositionY = 0;
+    _this2.listHeight = options.listHeight || 'auto';
+    _this2.listHeightAutoMode = _this2.listHeight === 'auto';
+    _this2.listItemHeight = options.listItemHeight;
+    _this2.idModelPropertyName = options.idModelPropertyName || 'id';
+
+    _this2.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
+
+    _this2.models = options.models || [];
+    _this2.ItemConstructor = options.ItemConstructor || _this2.getItemConstructor();
+    _this2.viewsMap = new Map();
+
+    _this2._onWindowResize = _this2.onResize.bind(_this2);
+    $(window).on('resize', _this2._onWindowResize);
+
+    if (_this2.listHeightAutoMode) {
+      _this2.once('attach', function () {
+        _this2.listHeight = _this2.queryListHeight();
+        if (_this2.isRendered) {
+          _this2.updateListScrollerHeight();
+          _this2.renderVisibleItems();
+        }
+      });
+    }
+    return _this2;
+  }
+
+  _createClass(BufferedListView, [{
+    key: 'destroy',
+    value: function destroy() {
+      $(window).off('resize', this._onWindowResize);
+      if (this.el) delete this.el.__view__;
+      if (this.$el) this.remove();
+      this._onWindowResize = null;
+      this.$listContainer = null;
+      this.$scrollerContainer = null;
+      this.models = null;
+      this.$el = null;
+      this.el = null;
+    }
+  }, {
+    key: 'setModels',
+    value: function setModels() {
+      var models = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+      this.models = models;
+      this.updateListScrollerHeight();
+      this.renderVisibleItems();
+    }
+
+    /**
+     * Returns the ItemView used to render each models
+     * @returns {Function}
+    **/
+
+  }, {
+    key: 'getItemConstructor',
+    value: function getItemConstructor() {
+      return BufferedListItemView;
+    }
+
+    /* Rendering related methods */
+
+    /**
+     * Returns the html content of a empty BufferedListView
+     * @returns {String}
+    **/
+
+  }, {
+    key: 'template',
+    value: function template() {
+      return '<div class="list-container"><div class="list-content"></div><ol class="list-display"></ol></div>';
+    }
+
+    /**
+     * Put the value returned by template method and listen all events necessary
     **/
 
   }, {
