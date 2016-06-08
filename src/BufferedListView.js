@@ -69,6 +69,10 @@ export default class BufferedListView extends View {
 
   setModels(models = []) {
     this.models = models;
+    Object.defineProperty(this, '_currentVisibleRange', {
+      configurable: true, writable: false,
+      value: createConstantArray(-1, -1)
+    });
     this.updateListScrollerHeight();
     this.renderVisibleItems();
   }
@@ -224,7 +228,11 @@ export default class BufferedListView extends View {
     if (!view) {
       view = this.createView(model, indexInModelList);
       this.viewsMap.set(model[this.idModelPropertyName], view);
+    } else if (view.model !== model) {
+      view.model = model;
+      view.render();
     }
+    view.indexInModelList = indexInModelList;
     return view;
   }
 

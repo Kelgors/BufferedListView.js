@@ -368,6 +368,10 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
             var models = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
             this.models = models;
+            Object.defineProperty(this, '_currentVisibleRange', {
+              configurable: true, writable: false,
+              value: createConstantArray(-1, -1)
+            });
             this.updateListScrollerHeight();
             this.renderVisibleItems();
           }
@@ -498,7 +502,11 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
             if (!view) {
               view = this.createView(model, indexInModelList);
               this.viewsMap.set(model[this.idModelPropertyName], view);
+            } else if (view.model !== model) {
+              view.model = model;
+              view.render();
             }
+            view.indexInModelList = indexInModelList;
             return view;
           }
         }, {

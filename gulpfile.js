@@ -73,7 +73,7 @@ gulp.task('build:js:globals:min', () => {
   return gulp.src(sourceFiles)
     .pipe(replace(/import [\{\[]?.*[\}\]]? from .*;\n/g, ''))
     .pipe(replace(/export (default )?/g, ''))
-    .pipe(concat(`${outputFileName}.js`))
+    .pipe(concat(`${outputFileName}.min.js`))
     .pipe(babel(defaultConfig))
     .pipe(uglify())
     .pipe(gulp.dest('dist'));
