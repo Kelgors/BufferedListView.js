@@ -6,8 +6,13 @@ define('city_list/CityItemView', [ 'BufferedListItemView', 'exports' ], function
   }
 
   CityItemView.DESTROY_METHOD = BufferedListItemView.DESTROY_METHOD;
+  CityItemView.tagName = BufferedListItemView.tagName;
 
   CityItemView.prototype = Object.create(BufferedListItemView.prototype, {
+    constructor: {
+      value: CityItemView,
+      enumerable: false
+    },
     template: {
       value: function template() {
         return [

@@ -29,8 +29,8 @@ System.register("arrays", [], function (_export, _context) {
 });
 'use strict';
 
-System.register('View', ['jquery'], function (_export, _context) {
-  var jQuery, _createClass, View;
+System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
+  var jQuery, SafeObject, _get, _createClass, View;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -38,11 +38,62 @@ System.register('View', ['jquery'], function (_export, _context) {
     }
   }
 
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
   return {
     setters: [function (_jquery) {
       jQuery = _jquery.default;
+    }, function (_SafeObject2) {
+      SafeObject = _SafeObject2.default;
     }],
     execute: function () {
+      _get = function get(object, property, receiver) {
+        if (object === null) object = Function.prototype;
+        var desc = Object.getOwnPropertyDescriptor(object, property);
+
+        if (desc === undefined) {
+          var parent = Object.getPrototypeOf(object);
+
+          if (parent === null) {
+            return undefined;
+          } else {
+            return get(parent, property, receiver);
+          }
+        } else if ("value" in desc) {
+          return desc.value;
+        } else {
+          var getter = desc.get;
+
+          if (getter === undefined) {
+            return undefined;
+          }
+
+          return getter.call(receiver);
+        }
+      };
+
       _createClass = function () {
         function defineProperties(target, props) {
           for (var i = 0; i < props.length; i++) {
@@ -61,7 +112,9 @@ System.register('View', ['jquery'], function (_export, _context) {
         };
       }();
 
-      View = function () {
+      View = function (_SafeObject) {
+        _inherits(View, _SafeObject);
+
         _createClass(View, [{
           key: 'isAttached',
           get: function get() {
@@ -72,9 +125,12 @@ System.register('View', ['jquery'], function (_export, _context) {
         function View() {
           _classCallCheck(this, View);
 
-          this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
-          this.$el.addClass('view');
-          this.el.__view__ = this;
+          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(View).call(this));
+
+          _this.$el = jQuery(_this.el = document.createElement(_this.constructor.tagName || 'div'));
+          _this.$el.addClass('view');
+          _this.el.__view__ = _this;
+          return _this;
         }
 
         _createClass(View, [{
@@ -84,7 +140,7 @@ System.register('View', ['jquery'], function (_export, _context) {
               this.el.__view__ = null;
               this.remove();
             }
-            this.el = this.$el = this.model = null;
+            _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
           }
         }, {
           key: '$',
@@ -108,7 +164,7 @@ System.register('View', ['jquery'], function (_export, _context) {
         }, {
           key: 'template',
           value: function template() {
-            return String(this.indexInModelList);
+            return '';
           }
         }, {
           key: 'render',
@@ -118,16 +174,18 @@ System.register('View', ['jquery'], function (_export, _context) {
         }]);
 
         return View;
-      }();
+      }(SafeObject);
 
       _export('default', View);
+
+      View.INSTANCE_PROPERTIES = ['el', '$el', 'model'];
     }
   };
 });
 'use strict';
 
 System.register('BufferedListItemView', ['View'], function (_export, _context) {
-  var View, BufferedListItemView;
+  var View, _createClass, BufferedListItemView;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -164,6 +222,24 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
       View = _View2.default;
     }],
     execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
       BufferedListItemView = function (_View) {
         _inherits(BufferedListItemView, _View);
 
@@ -176,6 +252,13 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
           return _this;
         }
 
+        _createClass(BufferedListItemView, [{
+          key: 'template',
+          value: function template() {
+            return String(this.indexInModelList);
+          }
+        }]);
+
         return BufferedListItemView;
       }(View);
 
@@ -183,13 +266,14 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
 
       BufferedListItemView.tagName = 'li';
       BufferedListItemView.DESTROY_METHOD = 'destroy';
+      BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList'];
     }
   };
 });
 'use strict';
 
-System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListItemView', 'arrays'], function (_export, _context) {
-  var $, Bullet, View, BufferedListItemView, createConstantArray, _slicedToArray, _createClass, BufferedListView;
+System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListItemView', 'arrays', 'KLogger'], function (_export, _context) {
+  var $, Bullet, View, BufferedListItemView, createConstantArray, KLogger, _slicedToArray, _createClass, _get, logger, BufferedListView;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -232,6 +316,8 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
       BufferedListItemView = _BufferedListItemView.default;
     }, function (_arrays) {
       createConstantArray = _arrays.createConstantArray;
+    }, function (_KLogger) {
+      KLogger = _KLogger.default;
     }],
     execute: function () {
       _slicedToArray = function () {
@@ -290,6 +376,33 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
         };
       }();
 
+      _get = function get(object, property, receiver) {
+        if (object === null) object = Function.prototype;
+        var desc = Object.getOwnPropertyDescriptor(object, property);
+
+        if (desc === undefined) {
+          var parent = Object.getPrototypeOf(object);
+
+          if (parent === null) {
+            return undefined;
+          } else {
+            return get(parent, property, receiver);
+          }
+        } else if ("value" in desc) {
+          return desc.value;
+        } else {
+          var getter = desc.get;
+
+          if (getter === undefined) {
+            return undefined;
+          }
+
+          return getter.call(receiver);
+        }
+      };
+
+      logger = new KLogger(KLogger.WARN);
+
       BufferedListView = function (_View) {
         _inherits(BufferedListView, _View);
 
@@ -303,35 +416,55 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
          * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
          * @param {Array} options.models                      - The list of models to be rendered
          * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
-         * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
+         * @param {Function} options.ItemConstructor          - The constructor for each child views (default: BufferedListItemView)
         **/
 
         function BufferedListView() {
-          var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+          var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+          var listContainerSelector = _ref.listContainerSelector;
+          var scrollerContainerSelector = _ref.scrollerContainerSelector;
+          var listHeight = _ref.listHeight;
+          var listItemHeight = _ref.listItemHeight;
+          var idModelPropertyName = _ref.idModelPropertyName;
+          var visibleOutboundItemsCount = _ref.visibleOutboundItemsCount;
+          var ItemConstructor = _ref.ItemConstructor;
+          var models = _ref.models;
 
           _classCallCheck(this, BufferedListView);
 
-          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
+          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this));
 
           $.extend(_this, Bullet);
           Object.defineProperty(_this, '_currentVisibleRange', {
             configurable: true, writable: false,
             value: createConstantArray(0, 0)
           });
+          Object.defineProperty(BufferedListView, 'debugMode', {
+            get: function get() {
+              return this._debugMode;
+            },
+            set: function set(value) {
+              if (value !== this._debugMode) {
+                this._debugMode = value;
+                this.renderVisibleItems();
+              }
+            }
+          });
 
           _this.isRendered = false;
-          _this.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
-          _this.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
+          _this.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
+          _this.scrollerContainerSelector = scrollerContainerSelector || '.list-container:first';
           _this.scrollPositionY = 0;
-          _this.listHeight = options.listHeight || 'auto';
+          _this.listHeight = listHeight || 'auto';
           _this.listHeightAutoMode = _this.listHeight === 'auto';
-          _this.listItemHeight = options.listItemHeight;
-          _this.idModelPropertyName = options.idModelPropertyName || 'id';
+          _this.listItemHeight = listItemHeight;
+          _this.idModelPropertyName = idModelPropertyName || 'id';
 
-          _this.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
+          _this.visibleOutboundItemsCount = typeof visibleOutboundItemsCount !== 'number' ? 2 : visibleOutboundItemsCount;
 
-          _this.models = options.models || [];
-          _this.ItemConstructor = options.ItemConstructor || _this.getItemConstructor();
+          _this.models = models || [];
+          _this.ItemConstructor = ItemConstructor || null;
           _this.viewsMap = new Map();
 
           _this._onWindowResize = _this.onResize.bind(_this);
@@ -352,15 +485,10 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
         _createClass(BufferedListView, [{
           key: 'destroy',
           value: function destroy() {
+            logger.debug('Destroying instance of BufferedListView');
             $(window).off('resize', this._onWindowResize);
             if (this.el) delete this.el.__view__;
-            if (this.$el) this.remove();
-            this._onWindowResize = null;
-            this.$listContainer = null;
-            this.$scrollerContainer = null;
-            this.models = null;
-            this.$el = null;
-            this.el = null;
+            _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
           }
         }, {
           key: 'setModels',
@@ -378,7 +506,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
         }, {
           key: 'getItemConstructor',
           value: function getItemConstructor() {
-            return BufferedListItemView;
+            return this.ItemConstructor || BufferedListItemView;
           }
         }, {
           key: 'template',
@@ -443,13 +571,13 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
           }
         }, {
           key: 'renderItemsRange',
-          value: function renderItemsRange(_ref) {
+          value: function renderItemsRange(_ref2) {
             var _this2 = this;
 
-            var _ref2 = _slicedToArray(_ref, 2);
+            var _ref3 = _slicedToArray(_ref2, 2);
 
-            var start = _ref2[0];
-            var end = _ref2[1];
+            var start = _ref3[0];
+            var end = _ref3[1];
 
             if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
             var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
@@ -465,7 +593,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
               configurable: true, writable: false,
               value: createConstantArray(start, end)
             });
-            if (this.constructor.DEV_MODE) this.renderDebugInfos();
+            if (this.debugMode) this.renderDebugInfos();
           }
         }, {
           key: 'renderVisibleItems',
@@ -512,7 +640,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
         }, {
           key: 'createView',
           value: function createView(model, indexInModelList) {
-            var view = new this.ItemConstructor();
+            var view = new (this.getItemConstructor())();
             view.model = model;
             view.indexInModelList = indexInModelList;
             view.render();
@@ -529,7 +657,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
           key: 'removeView',
           value: function removeView(view) {
             this.viewsMap.delete(view.model[this.idModelPropertyName]);
-            view[this.ItemConstructor.DESTROY_METHOD]();
+            view[this.getItemConstructor().DESTROY_METHOD]();
           }
         }, {
           key: 'addViews',
@@ -576,8 +704,8 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
             this.renderVisibleItems();
           }
         }, {
-          key: 'renderDebugInfos',
-          value: function renderDebugInfos() {
+          key: 'toDebugInfos',
+          value: function toDebugInfos() {
             var _defineRangeOfModelsV = this.defineRangeOfModelsVisibles();
 
             var _defineRangeOfModelsV2 = _slicedToArray(_defineRangeOfModelsV, 2);
@@ -585,7 +713,12 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
             var startIndex = _defineRangeOfModelsV2[0];
             var endIndex = _defineRangeOfModelsV2[1];
 
-            $('#debug-container').html('\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
+            return 'Visible range: (' + startIndex + ', ' + endIndex + ')\nVisible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')';
+          }
+        }, {
+          key: 'renderDebugInfos',
+          value: function renderDebugInfos() {
+            $('#debug-container').html('<div>' + this.toDebugInfos().replace('\n', '</div><div>') + '</div>');
           }
         }]);
 
@@ -593,6 +726,17 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
       }(View);
 
       _export('default', BufferedListView);
+
+      BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
+      // included by Bullet
+      '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',
+      // BufferedListView
+      'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight', 'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models', 'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer');
+
+      BufferedListView.setLogLevel = function (levelName) {
+        levelName = levelName.toUpperCase();
+        if (levelName in KLogger) logger.loglevel = KLogger[levelName];
+      };
     }
   };
 });

@@ -91,9 +91,9 @@ gulp.task('watch:js', function () {
 gulp.task('serve:website', function () {
   return connect.server({
     root: 'website',
-    livereload: true,
+    livereload: false,
     port: 3000
   });
 });
 
-gulp.task('default', [ 'watch:js' ]);
+gulp.task('default', [ 'build:js:amd', 'watch:js', 'serve:website' ]);

@@ -5,10 +5,14 @@ define('country_list/CountryItemView', [ 'BufferedListItemView', 'exports' ], fu
     BufferedListItemView.call(this);
   }
 
-  CountryItemView.CLEAR_METHOD = BufferedListItemView.CLEAR_METHOD;
+  CountryItemView.tagName = BufferedListItemView.tagName;
   CountryItemView.DESTROY_METHOD = BufferedListItemView.DESTROY_METHOD;
 
   CountryItemView.prototype = Object.create(BufferedListItemView.prototype, {
+    constructor: {
+      value: CountryItemView,
+      enumerable: false
+    },
     template: {
       value: function template() {
         return [

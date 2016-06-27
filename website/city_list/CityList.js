@@ -12,6 +12,10 @@ define('city_list/CityList', [ 'city_list/CityItemView', 'BufferedListView', 'ex
   }
 
   CityList.prototype = Object.create(BufferedListView.prototype, {
+    constructor: {
+      value: CityList,
+      enumerable: false
+    },
     getItemConstructor: {
       value: function getItemConstructor() {
         return CityItemView;

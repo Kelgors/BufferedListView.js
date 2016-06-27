@@ -2,13 +2,15 @@
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function createConstantArray() {
   for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
@@ -28,7 +30,9 @@ function createConstantArray() {
   return array;
 };
 
-var View = function () {
+var View = function (_SafeObject) {
+  _inherits(View, _SafeObject);
+
   _createClass(View, [{
     key: 'isAttached',
     get: function get() {
@@ -39,9 +43,12 @@ var View = function () {
   function View() {
     _classCallCheck(this, View);
 
-    this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
-    this.$el.addClass('view');
-    this.el.__view__ = this;
+    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(View).call(this));
+
+    _this.$el = jQuery(_this.el = document.createElement(_this.constructor.tagName || 'div'));
+    _this.$el.addClass('view');
+    _this.el.__view__ = _this;
+    return _this;
   }
 
   _createClass(View, [{
@@ -51,7 +58,7 @@ var View = function () {
         this.el.__view__ = null;
         this.remove();
       }
-      this.el = this.$el = this.model = null;
+      _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
     }
   }, {
     key: '$',
@@ -75,7 +82,7 @@ var View = function () {
   }, {
     key: 'template',
     value: function template() {
-      return String(this.indexInModelList);
+      return '';
     }
   }, {
     key: 'render',
@@ -85,7 +92,9 @@ var View = function () {
   }]);
 
   return View;
-}();
+}(SafeObject);
+
+View.INSTANCE_PROPERTIES = ['el', '$el', 'model'];
 
 var BufferedListItemView = function (_View) {
   _inherits(BufferedListItemView, _View);
@@ -93,17 +102,27 @@ var BufferedListItemView = function (_View) {
   function BufferedListItemView() {
     _classCallCheck(this, BufferedListItemView);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListItemView).call(this));
+    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListItemView).call(this));
 
-    _this.$el.addClass('item-view');
-    return _this;
+    _this2.$el.addClass('item-view');
+    return _this2;
   }
+
+  _createClass(BufferedListItemView, [{
+    key: 'template',
+    value: function template() {
+      return String(this.indexInModelList);
+    }
+  }]);
 
   return BufferedListItemView;
 }(View);
 
 BufferedListItemView.tagName = 'li';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
+BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList'];
+
+var logger = new KLogger(KLogger.WARN);
 
 var BufferedListView = function (_View2) {
   _inherits(BufferedListView, _View2);
@@ -118,64 +137,79 @@ var BufferedListView = function (_View2) {
    * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
    * @param {Array} options.models                      - The list of models to be rendered
    * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
-   * @param {Function} options.ItemConstructor          - The constructor for each child views (default: call getItemConstructor())
+   * @param {Function} options.ItemConstructor          - The constructor for each child views (default: BufferedListItemView)
   **/
 
   function BufferedListView() {
-    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    var listContainerSelector = _ref.listContainerSelector;
+    var scrollerContainerSelector = _ref.scrollerContainerSelector;
+    var listHeight = _ref.listHeight;
+    var listItemHeight = _ref.listItemHeight;
+    var idModelPropertyName = _ref.idModelPropertyName;
+    var visibleOutboundItemsCount = _ref.visibleOutboundItemsCount;
+    var ItemConstructor = _ref.ItemConstructor;
+    var models = _ref.models;
 
     _classCallCheck(this, BufferedListView);
 
-    var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this, options));
+    var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this));
 
-    $.extend(_this2, Bullet);
-    Object.defineProperty(_this2, '_currentVisibleRange', {
+    $.extend(_this3, Bullet);
+    Object.defineProperty(_this3, '_currentVisibleRange', {
       configurable: true, writable: false,
       value: createConstantArray(0, 0)
     });
+    Object.defineProperty(BufferedListView, 'debugMode', {
+      get: function get() {
+        return this._debugMode;
+      },
+      set: function set(value) {
+        if (value !== this._debugMode) {
+          this._debugMode = value;
+          this.renderVisibleItems();
+        }
+      }
+    });
 
-    _this2.isRendered = false;
-    _this2.listContainerSelector = options.listContainerSelector || '.list-container:first > .list-display';
-    _this2.scrollerContainerSelector = options.scrollerContainerSelector || '.list-container:first';
-    _this2.scrollPositionY = 0;
-    _this2.listHeight = options.listHeight || 'auto';
-    _this2.listHeightAutoMode = _this2.listHeight === 'auto';
-    _this2.listItemHeight = options.listItemHeight;
-    _this2.idModelPropertyName = options.idModelPropertyName || 'id';
+    _this3.isRendered = false;
+    _this3.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
+    _this3.scrollerContainerSelector = scrollerContainerSelector || '.list-container:first';
+    _this3.scrollPositionY = 0;
+    _this3.listHeight = listHeight || 'auto';
+    _this3.listHeightAutoMode = _this3.listHeight === 'auto';
+    _this3.listItemHeight = listItemHeight;
+    _this3.idModelPropertyName = idModelPropertyName || 'id';
 
-    _this2.visibleOutboundItemsCount = typeof options.visibleOutboundItemsCount !== 'number' ? 2 : options.visibleOutboundItemsCount;
+    _this3.visibleOutboundItemsCount = typeof visibleOutboundItemsCount !== 'number' ? 2 : visibleOutboundItemsCount;
 
-    _this2.models = options.models || [];
-    _this2.ItemConstructor = options.ItemConstructor || _this2.getItemConstructor();
-    _this2.viewsMap = new Map();
+    _this3.models = models || [];
+    _this3.ItemConstructor = ItemConstructor || null;
+    _this3.viewsMap = new Map();
 
-    _this2._onWindowResize = _this2.onResize.bind(_this2);
-    $(window).on('resize', _this2._onWindowResize);
+    _this3._onWindowResize = _this3.onResize.bind(_this3);
+    $(window).on('resize', _this3._onWindowResize);
 
-    if (_this2.listHeightAutoMode) {
-      _this2.once('attach', function () {
-        _this2.listHeight = _this2.queryListHeight();
-        if (_this2.isRendered) {
-          _this2.updateListScrollerHeight();
-          _this2.renderVisibleItems();
+    if (_this3.listHeightAutoMode) {
+      _this3.once('attach', function () {
+        _this3.listHeight = _this3.queryListHeight();
+        if (_this3.isRendered) {
+          _this3.updateListScrollerHeight();
+          _this3.renderVisibleItems();
         }
       });
     }
-    return _this2;
+    return _this3;
   }
 
   _createClass(BufferedListView, [{
     key: 'destroy',
     value: function destroy() {
+      logger.debug('Destroying instance of BufferedListView');
       $(window).off('resize', this._onWindowResize);
       if (this.el) delete this.el.__view__;
-      if (this.$el) this.remove();
-      this._onWindowResize = null;
-      this.$listContainer = null;
-      this.$scrollerContainer = null;
-      this.models = null;
-      this.$el = null;
-      this.el = null;
+      _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
     }
   }, {
     key: 'setModels',
@@ -199,7 +233,7 @@ var BufferedListView = function (_View2) {
   }, {
     key: 'getItemConstructor',
     value: function getItemConstructor() {
-      return BufferedListItemView;
+      return this.ItemConstructor || BufferedListItemView;
     }
 
     /* Rendering related methods */
@@ -307,20 +341,20 @@ var BufferedListView = function (_View2) {
 
   }, {
     key: 'renderItemsRange',
-    value: function renderItemsRange(_ref) {
-      var _this3 = this;
+    value: function renderItemsRange(_ref2) {
+      var _this4 = this;
 
-      var _ref2 = _slicedToArray(_ref, 2);
+      var _ref3 = _slicedToArray(_ref2, 2);
 
-      var start = _ref2[0];
-      var end = _ref2[1];
+      var start = _ref3[0];
+      var end = _ref3[1];
 
       if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
       var modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
       var rangeOfModels = this.models.slice(modelsStart, modelsEnd);
       var views = rangeOfModels.map(function (model, index) {
-        var view = _this3.getView(model, modelsStart + Number(index));
+        var view = _this4.getView(model, modelsStart + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);
         return view;
       });
@@ -329,7 +363,7 @@ var BufferedListView = function (_View2) {
         configurable: true, writable: false,
         value: createConstantArray(start, end)
       });
-      if (this.constructor.DEV_MODE) this.renderDebugInfos();
+      if (this.debugMode) this.renderDebugInfos();
     }
 
     /**
@@ -398,7 +432,7 @@ var BufferedListView = function (_View2) {
   }, {
     key: 'createView',
     value: function createView(model, indexInModelList) {
-      var view = new this.ItemConstructor();
+      var view = new (this.getItemConstructor())();
       view.model = model;
       view.indexInModelList = indexInModelList;
       view.render();
@@ -427,7 +461,7 @@ var BufferedListView = function (_View2) {
     key: 'removeView',
     value: function removeView(view) {
       this.viewsMap.delete(view.model[this.idModelPropertyName]);
-      view[this.ItemConstructor.DESTROY_METHOD]();
+      view[this.getItemConstructor().DESTROY_METHOD]();
     }
 
     /**
@@ -480,11 +514,22 @@ var BufferedListView = function (_View2) {
 
     /* Class behavior dependent events */
 
+    /**
+     * When the viewport is resized and this.listHeightAutoMode is truthy, update list height
+     * @param {Event}
+    **/
+
   }, {
     key: '_onResize',
     value: function _onResize(event) {
       if (this.listHeightAutoMode) this.listHeight = this.queryListHeight();
     }
+
+    /**
+     * When the user scroll the list-scroller, update scroll position and render visible items
+     * @param {Event} event
+    **/
+
   }, {
     key: '_onScroll',
     value: function _onScroll(event) {
@@ -495,8 +540,8 @@ var BufferedListView = function (_View2) {
     /* Debug */
 
   }, {
-    key: 'renderDebugInfos',
-    value: function renderDebugInfos() {
+    key: 'toDebugInfos',
+    value: function toDebugInfos() {
       var _defineRangeOfModelsV = this.defineRangeOfModelsVisibles();
 
       var _defineRangeOfModelsV2 = _slicedToArray(_defineRangeOfModelsV, 2);
@@ -504,9 +549,25 @@ var BufferedListView = function (_View2) {
       var startIndex = _defineRangeOfModelsV2[0];
       var endIndex = _defineRangeOfModelsV2[1];
 
-      $('#debug-container').html('\n<div>Visible range: (' + startIndex + ', ' + endIndex + ')</div>\n<div>Visible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')');
+      return 'Visible range: (' + startIndex + ', ' + endIndex + ')\nVisible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')';
+    }
+  }, {
+    key: 'renderDebugInfos',
+    value: function renderDebugInfos() {
+      $('#debug-container').html('<div>' + this.toDebugInfos().replace('\n', '</div><div>') + '</div>');
     }
   }]);
 
   return BufferedListView;
 }(View);
+
+BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
+// included by Bullet
+'_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',
+// BufferedListView
+'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight', 'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models', 'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer');
+
+BufferedListView.setLogLevel = function (levelName) {
+  levelName = levelName.toUpperCase();
+  if (levelName in KLogger) logger.loglevel = KLogger[levelName];
+};

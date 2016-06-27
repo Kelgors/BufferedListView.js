@@ -12,6 +12,10 @@ define('country_list/CountryList', [ 'country_list/CountryItemView', 'BufferedLi
   }
 
   CountryList.prototype = Object.create(BufferedListView.prototype, {
+    constructor: {
+      value: CountryList,
+      enumerable: false
+    },
     getItemConstructor: {
       value: function getItemConstructor() {
         return CountryItemView;

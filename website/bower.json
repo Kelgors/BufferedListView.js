@@ -26,7 +26,9 @@
   "dependencies": {
     "pool.js": "master",
     "jquery": "^2.2.2",
-    "bullet": "^2.2.1"
+    "bullet": "^2.2.1",
+    "SafeObject.js": "^1.0.5",
+    "klogger": "^1.0.0"
   },
   "devDependencies": {
     "requirejs": "requirejs-bower#^2.2.0",

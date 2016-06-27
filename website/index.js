@@ -24,10 +24,8 @@ require([ 'jquery' ], function (jQuery) {
 
         $.getJSON(conf['data'])
           .done(function onDataLoaded(data) {
-
-            ListView.DEV_MODE = !!document.getElementById('debug-container');
-
             var list = new ListView({ models: data });
+            list.debugMode = !!document.getElementById('debug-container');
             list.attachTo(document.getElementById('example-list-container'));
             //list.trigger('attach');
             list.render();
