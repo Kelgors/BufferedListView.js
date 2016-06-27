@@ -440,17 +440,6 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
             configurable: true, writable: false,
             value: createConstantArray(0, 0)
           });
-          Object.defineProperty(BufferedListView, 'debugMode', {
-            get: function get() {
-              return this._debugMode;
-            },
-            set: function set(value) {
-              if (value !== this._debugMode) {
-                this._debugMode = value;
-                this.renderVisibleItems();
-              }
-            }
-          });
 
           _this.isRendered = false;
           _this.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
@@ -593,7 +582,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
               configurable: true, writable: false,
               value: createConstantArray(start, end)
             });
-            if (this.debugMode) this.renderDebugInfos();
+            if (BufferedListView.debugMode) this.renderDebugInfos();
           }
         }, {
           key: 'renderVisibleItems',
@@ -727,6 +716,7 @@ System.register('BufferedListView', ['jquery', 'bullet', 'View', 'BufferedListIt
 
       _export('default', BufferedListView);
 
+      BufferedListView.debugMode = false;
       BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
       // included by Bullet
       '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',

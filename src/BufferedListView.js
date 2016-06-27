@@ -28,17 +28,6 @@ export default class BufferedListView extends View {
       configurable: true, writable: false,
       value: createConstantArray(0, 0)
     });
-    Object.defineProperty(BufferedListView, 'debugMode', {
-      get: function () {
-        return this._debugMode;
-      },
-      set: function (value) {
-        if (value !== this._debugMode) {
-          this._debugMode = value;
-          this.renderVisibleItems();
-        }
-      }
-    });
 
     this.isRendered = false;
     this.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
@@ -190,7 +179,7 @@ export default class BufferedListView extends View {
       configurable: true, writable: false,
       value: createConstantArray(start, end)
     });
-    if (this.debugMode) this.renderDebugInfos();
+    if (BufferedListView.debugMode) this.renderDebugInfos();
   }
 
   /**
@@ -342,6 +331,7 @@ export default class BufferedListView extends View {
   }
 }
 
+BufferedListView.debugMode = false;
 BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
   // included by Bullet
   '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks',
