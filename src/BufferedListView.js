@@ -61,7 +61,7 @@ export default class BufferedListView extends View {
   destroy() {
     logger.debug('Destroying instance of BufferedListView');
     $(window).off('resize', this._onWindowResize);
-    if (this.el) delete this.el.__view__;
+    if (this.el) this.el.__view__ = null;
     super.destroy();
   }
 
@@ -98,7 +98,7 @@ export default class BufferedListView extends View {
   **/
   render() {
     // render view
-    this.$el.html(this.template());
+    this.renderBaseView();
     this.isRendered = true;
     // query elements
     this.$listContainer = this.$(this.listContainerSelector);
@@ -111,6 +111,10 @@ export default class BufferedListView extends View {
       this.updateListScrollerHeight();
       this.renderVisibleItems();
     }
+  }
+
+  renderBaseView() {
+    this.$el.html(this.template());
   }
 
   attachTo(element) {
@@ -217,6 +221,7 @@ export default class BufferedListView extends View {
   **/
   getView(model, indexInModelList) {
     let view = this.viewsMap.get(model[this.idModelPropertyName]);
+    let shouldBeRendered = false;
     if (typeof this.idModelPropertyName === 'undefined') {
       throw new Error('BufferedListView#idModelPropertyName must be defined');
     }
@@ -226,11 +231,15 @@ export default class BufferedListView extends View {
     if (!view) {
       view = this.createView(model, indexInModelList);
       this.viewsMap.set(model[this.idModelPropertyName], view);
+      shouldBeRendered = true;
     } else if (view.model !== model) {
       view.model = model;
-      view.render();
+      view.parentListView = this;
+      shouldBeRendered = true;
     }
+
     view.indexInModelList = indexInModelList;
+    if (shouldBeRendered) view.render();
     return view;
   }
 
@@ -238,7 +247,7 @@ export default class BufferedListView extends View {
     const view = new (this.getItemConstructor())();
     view.model = model;
     view.indexInModelList = indexInModelList;
-    view.render();
+    view.parentListView = this;
     return view;
   }
 
@@ -259,6 +268,8 @@ export default class BufferedListView extends View {
   removeView(view) {
     this.viewsMap.delete(view.model[this.idModelPropertyName]);
     view[this.getItemConstructor().DESTROY_METHOD]();
+    view.parentListView = null;
+    view.model = null;
   }
 
   /**

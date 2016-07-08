@@ -483,7 +483,7 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
       value: function destroy() {
         logger.debug('Destroying instance of BufferedListView');
         (0, _jquery2.default)(window).off('resize', this._onWindowResize);
-        if (this.el) delete this.el.__view__;
+        if (this.el) this.el.__view__ = null;
         _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
       }
     }, {
@@ -513,7 +513,7 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
       key: 'render',
       value: function render() {
         // render view
-        this.$el.html(this.template());
+        this.renderBaseView();
         this.isRendered = true;
         // query elements
         this.$listContainer = this.$(this.listContainerSelector);
@@ -526,6 +526,11 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
           this.updateListScrollerHeight();
           this.renderVisibleItems();
         }
+      }
+    }, {
+      key: 'renderBaseView',
+      value: function renderBaseView() {
+        this.$el.html(this.template());
       }
     }, {
       key: 'attachTo',
@@ -617,6 +622,7 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
       key: 'getView',
       value: function getView(model, indexInModelList) {
         var view = this.viewsMap.get(model[this.idModelPropertyName]);
+        var shouldBeRendered = false;
         if (typeof this.idModelPropertyName === 'undefined') {
           throw new Error('BufferedListView#idModelPropertyName must be defined');
         }
@@ -626,11 +632,15 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
         if (!view) {
           view = this.createView(model, indexInModelList);
           this.viewsMap.set(model[this.idModelPropertyName], view);
+          shouldBeRendered = true;
         } else if (view.model !== model) {
           view.model = model;
-          view.render();
+          view.parentListView = this;
+          shouldBeRendered = true;
         }
+
         view.indexInModelList = indexInModelList;
+        if (shouldBeRendered) view.render();
         return view;
       }
     }, {
@@ -639,7 +649,7 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
         var view = new (this.getItemConstructor())();
         view.model = model;
         view.indexInModelList = indexInModelList;
-        view.render();
+        view.parentListView = this;
         return view;
       }
     }, {
@@ -654,6 +664,8 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
       value: function removeView(view) {
         this.viewsMap.delete(view.model[this.idModelPropertyName]);
         view[this.getItemConstructor().DESTROY_METHOD]();
+        view.parentListView = null;
+        view.model = null;
       }
     }, {
       key: 'addViews',
