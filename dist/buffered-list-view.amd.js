@@ -262,6 +262,22 @@ define('BufferedListItemView', ['exports', 'View'], function (exports, _View2) {
       value: function template() {
         return String(this.indexInModelList);
       }
+    }, {
+      key: 'onInitialize',
+      value: function onInitialize(_ref) {
+        var model = _ref.model;
+        var parentListView = _ref.parentListView;
+        var indexInModelList = _ref.indexInModelList;
+
+        this.model = model;
+        this.parentListView = parentListView;
+        this.indexInModelList = indexInModelList;
+      }
+    }, {
+      key: 'onUpdate',
+      value: function onUpdate(event) {
+        this.indexInModelList = event.indexInModelList;
+      }
     }]);
 
     return BufferedListItemView;
@@ -272,9 +288,9 @@ define('BufferedListItemView', ['exports', 'View'], function (exports, _View2) {
 
   BufferedListItemView.tagName = 'li';
   BufferedListItemView.DESTROY_METHOD = 'destroy';
-  BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList'];
+  BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList', 'model', 'parentListView'];
 });
-define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedListItemView', 'arrays', 'KLogger'], function (exports, _jquery, _bullet, _View2, _BufferedListItemView, _arrays, _KLogger) {
+define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView', 'arrays', 'KLogger'], function (exports, _jquery, _View2, _BufferedListItemView, _arrays, _KLogger) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
@@ -282,8 +298,6 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
   });
 
   var _jquery2 = _interopRequireDefault(_jquery);
-
-  var _bullet2 = _interopRequireDefault(_bullet);
 
   var _View3 = _interopRequireDefault(_View2);
 
@@ -341,24 +355,6 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
     }
   }
 
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
-
   function _possibleConstructorReturn(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -392,6 +388,24 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
     }
   };
 
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
@@ -409,9 +423,31 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
   }
 
   var logger = new _KLogger2.default(_KLogger2.default.WARN);
+  var EventManager = void 0;
+
+  /**
+   * interface EventManager {
+   *   on(eventName, eventCallback, eventContext?);
+   *   off(eventName, eventCallback, eventContext?);
+   *   trigger(eventName, eventValue);
+   * }
+  **/
 
   var BufferedListView = function (_View) {
     _inherits(BufferedListView, _View);
+
+    _createClass(BufferedListView, null, [{
+      key: 'setEventManager',
+      value: function setEventManager(eventManager) {
+        EventManager = eventManager;
+      }
+    }, {
+      key: 'setLogLevel',
+      value: function setLogLevel(levelName) {
+        levelName = levelName.toUpperCase();
+        if (levelName in _KLogger2.default) logger.loglevel = _KLogger2.default[levelName];
+      }
+    }]);
 
     /**
      *
@@ -442,7 +478,7 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
 
       var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this));
 
-      _jquery2.default.extend(_this, _bullet2.default);
+      if (EventManager) _jquery2.default.extend(_this, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
       Object.defineProperty(_this, '_currentVisibleRange', {
         configurable: true, writable: false,
         value: (0, _arrays.createConstantArray)(0, 0)
@@ -622,7 +658,7 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
       key: 'getView',
       value: function getView(model, indexInModelList) {
         var view = this.viewsMap.get(model[this.idModelPropertyName]);
-        var shouldBeRendered = false;
+
         if (typeof this.idModelPropertyName === 'undefined') {
           throw new Error('BufferedListView#idModelPropertyName must be defined');
         }
@@ -632,24 +668,16 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
         if (!view) {
           view = this.createView(model, indexInModelList);
           this.viewsMap.set(model[this.idModelPropertyName], view);
-          shouldBeRendered = true;
-        } else if (view.model !== model) {
-          view.model = model;
-          view.parentListView = this;
-          shouldBeRendered = true;
-        }
+          view.render();
+        } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update' });
 
-        view.indexInModelList = indexInModelList;
-        if (shouldBeRendered) view.render();
         return view;
       }
     }, {
       key: 'createView',
       value: function createView(model, indexInModelList) {
         var view = new (this.getItemConstructor())();
-        view.model = model;
-        view.indexInModelList = indexInModelList;
-        view.parentListView = this;
+        view.onInitialize({ type: 'initialize', model: model, parentListView: this, indexInModelList: indexInModelList });
         return view;
       }
     }, {
@@ -742,9 +770,4 @@ define('BufferedListView', ['exports', 'jquery', 'bullet', 'View', 'BufferedList
   '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',
   // BufferedListView
   'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight', 'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models', 'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer');
-
-  BufferedListView.setLogLevel = function (levelName) {
-    levelName = levelName.toUpperCase();
-    if (levelName in _KLogger2.default) logger.loglevel = _KLogger2.default[levelName];
-  };
 });

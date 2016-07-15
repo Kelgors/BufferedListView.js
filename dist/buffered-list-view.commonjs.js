@@ -152,6 +152,22 @@ var BufferedListItemView = function (_View) {
     value: function template() {
       return String(this.indexInModelList);
     }
+  }, {
+    key: 'onInitialize',
+    value: function onInitialize(_ref) {
+      var model = _ref.model;
+      var parentListView = _ref.parentListView;
+      var indexInModelList = _ref.indexInModelList;
+
+      this.model = model;
+      this.parentListView = parentListView;
+      this.indexInModelList = indexInModelList;
+    }
+  }, {
+    key: 'onUpdate',
+    value: function onUpdate(event) {
+      this.indexInModelList = event.indexInModelList;
+    }
   }]);
 
   return BufferedListItemView;
@@ -162,7 +178,7 @@ exports.default = BufferedListItemView;
 
 BufferedListItemView.tagName = 'li';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
-BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList'];
+BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList', 'model', 'parentListView'];
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -171,17 +187,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _jquery = require('jquery');
 
 var _jquery2 = _interopRequireDefault(_jquery);
-
-var _bullet = require('bullet');
-
-var _bullet2 = _interopRequireDefault(_bullet);
 
 var _View2 = require('View');
 
@@ -206,22 +218,45 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var logger = new _KLogger2.default(_KLogger2.default.WARN);
+var EventManager = void 0;
+
+/**
+ * interface EventManager {
+ *   on(eventName, eventCallback, eventContext?);
+ *   off(eventName, eventCallback, eventContext?);
+ *   trigger(eventName, eventValue);
+ * }
+**/
 
 var BufferedListView = function (_View) {
   _inherits(BufferedListView, _View);
 
-  /**
-   *
-   * @param {Object} options
-   * @param {String} options.listContainerSelector      - Selector where to append child
-   * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
-   * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
-   * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
-   * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
-   * @param {Array} options.models                      - The list of models to be rendered
-   * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
-   * @param {Function} options.ItemConstructor          - The constructor for each child views (default: BufferedListItemView)
-  **/
+  _createClass(BufferedListView, null, [{
+    key: 'setEventManager',
+    value: function setEventManager(eventManager) {
+      EventManager = eventManager;
+    }
+  }, {
+    key: 'setLogLevel',
+    value: function setLogLevel(levelName) {
+      levelName = levelName.toUpperCase();
+      if (levelName in _KLogger2.default) logger.loglevel = _KLogger2.default[levelName];
+    }
+
+    /**
+     *
+     * @param {Object} options
+     * @param {String} options.listContainerSelector      - Selector where to append child
+     * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
+     * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
+     * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
+     * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
+     * @param {Array} options.models                      - The list of models to be rendered
+     * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
+     * @param {Function} options.ItemConstructor          - The constructor for each child views (default: BufferedListItemView)
+    **/
+
+  }]);
 
   function BufferedListView() {
     var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -239,7 +274,7 @@ var BufferedListView = function (_View) {
 
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this));
 
-    _jquery2.default.extend(_this, _bullet2.default);
+    if (EventManager) _jquery2.default.extend(_this, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
     Object.defineProperty(_this, '_currentVisibleRange', {
       configurable: true, writable: false,
       value: (0, _arrays.createConstantArray)(0, 0)
@@ -280,7 +315,7 @@ var BufferedListView = function (_View) {
     value: function destroy() {
       logger.debug('Destroying instance of BufferedListView');
       (0, _jquery2.default)(window).off('resize', this._onWindowResize);
-      if (this.el) delete this.el.__view__;
+      if (this.el) this.el.__view__ = null;
       _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
     }
   }, {
@@ -329,7 +364,7 @@ var BufferedListView = function (_View) {
     key: 'render',
     value: function render() {
       // render view
-      this.$el.html(this.template());
+      this.renderBaseView();
       this.isRendered = true;
       // query elements
       this.$listContainer = this.$(this.listContainerSelector);
@@ -342,6 +377,11 @@ var BufferedListView = function (_View) {
         this.updateListScrollerHeight();
         this.renderVisibleItems();
       }
+    }
+  }, {
+    key: 'renderBaseView',
+    value: function renderBaseView() {
+      this.$el.html(this.template());
     }
   }, {
     key: 'attachTo',
@@ -485,6 +525,7 @@ var BufferedListView = function (_View) {
     key: 'getView',
     value: function getView(model, indexInModelList) {
       var view = this.viewsMap.get(model[this.idModelPropertyName]);
+
       if (typeof this.idModelPropertyName === 'undefined') {
         throw new Error('BufferedListView#idModelPropertyName must be defined');
       }
@@ -494,20 +535,16 @@ var BufferedListView = function (_View) {
       if (!view) {
         view = this.createView(model, indexInModelList);
         this.viewsMap.set(model[this.idModelPropertyName], view);
-      } else if (view.model !== model) {
-        view.model = model;
         view.render();
-      }
-      view.indexInModelList = indexInModelList;
+      } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update' });
+
       return view;
     }
   }, {
     key: 'createView',
     value: function createView(model, indexInModelList) {
       var view = new (this.getItemConstructor())();
-      view.model = model;
-      view.indexInModelList = indexInModelList;
-      view.render();
+      view.onInitialize({ type: 'initialize', model: model, parentListView: this, indexInModelList: indexInModelList });
       return view;
     }
 
@@ -534,6 +571,8 @@ var BufferedListView = function (_View) {
     value: function removeView(view) {
       this.viewsMap.delete(view.model[this.idModelPropertyName]);
       view[this.getItemConstructor().DESTROY_METHOD]();
+      view.parentListView = null;
+      view.model = null;
     }
 
     /**
@@ -642,8 +681,3 @@ BufferedListView.INSTANCE_PROPERTIES = (0, _arrays.createConstantArray)(
 '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',
 // BufferedListView
 'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight', 'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models', 'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer');
-
-BufferedListView.setLogLevel = function (levelName) {
-  levelName = levelName.toUpperCase();
-  if (levelName in _KLogger2.default) logger.loglevel = _KLogger2.default[levelName];
-};

@@ -113,6 +113,22 @@ var BufferedListItemView = function (_View) {
     value: function template() {
       return String(this.indexInModelList);
     }
+  }, {
+    key: 'onInitialize',
+    value: function onInitialize(_ref) {
+      var model = _ref.model;
+      var parentListView = _ref.parentListView;
+      var indexInModelList = _ref.indexInModelList;
+
+      this.model = model;
+      this.parentListView = parentListView;
+      this.indexInModelList = indexInModelList;
+    }
+  }, {
+    key: 'onUpdate',
+    value: function onUpdate(event) {
+      this.indexInModelList = event.indexInModelList;
+    }
   }]);
 
   return BufferedListItemView;
@@ -120,43 +136,66 @@ var BufferedListItemView = function (_View) {
 
 BufferedListItemView.tagName = 'li';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
-BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList'];
+BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList', 'model', 'parentListView'];
 
 var logger = new KLogger(KLogger.WARN);
+var EventManager = void 0;
+
+/**
+ * interface EventManager {
+ *   on(eventName, eventCallback, eventContext?);
+ *   off(eventName, eventCallback, eventContext?);
+ *   trigger(eventName, eventValue);
+ * }
+**/
 
 var BufferedListView = function (_View2) {
   _inherits(BufferedListView, _View2);
 
-  /**
-   *
-   * @param {Object} options
-   * @param {String} options.listContainerSelector      - Selector where to append child
-   * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
-   * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
-   * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
-   * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
-   * @param {Array} options.models                      - The list of models to be rendered
-   * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
-   * @param {Function} options.ItemConstructor          - The constructor for each child views (default: BufferedListItemView)
-  **/
+  _createClass(BufferedListView, null, [{
+    key: 'setEventManager',
+    value: function setEventManager(eventManager) {
+      EventManager = eventManager;
+    }
+  }, {
+    key: 'setLogLevel',
+    value: function setLogLevel(levelName) {
+      levelName = levelName.toUpperCase();
+      if (levelName in KLogger) logger.loglevel = KLogger[levelName];
+    }
+
+    /**
+     *
+     * @param {Object} options
+     * @param {String} options.listContainerSelector      - Selector where to append child
+     * @param {String} options.scrollerContainerSelector  - Selector to get on this element the scrollTop value
+     * @param {String|Number} options.listHeight          - Define the list height (can be 'auto')
+     * @param {Number} options.listItemHeight             - Define the list item height. Used to set position for each child
+     * @param {Number} options.visibleOutboundItemsCount  - Set the number of items rendered out of the visible rectangle.
+     * @param {Array} options.models                      - The list of models to be rendered
+     * @param {String} options.idModelPropertyName        - The propetyName which identify each objects
+     * @param {Function} options.ItemConstructor          - The constructor for each child views (default: BufferedListItemView)
+    **/
+
+  }]);
 
   function BufferedListView() {
-    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var _ref2 = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-    var listContainerSelector = _ref.listContainerSelector;
-    var scrollerContainerSelector = _ref.scrollerContainerSelector;
-    var listHeight = _ref.listHeight;
-    var listItemHeight = _ref.listItemHeight;
-    var idModelPropertyName = _ref.idModelPropertyName;
-    var visibleOutboundItemsCount = _ref.visibleOutboundItemsCount;
-    var ItemConstructor = _ref.ItemConstructor;
-    var models = _ref.models;
+    var listContainerSelector = _ref2.listContainerSelector;
+    var scrollerContainerSelector = _ref2.scrollerContainerSelector;
+    var listHeight = _ref2.listHeight;
+    var listItemHeight = _ref2.listItemHeight;
+    var idModelPropertyName = _ref2.idModelPropertyName;
+    var visibleOutboundItemsCount = _ref2.visibleOutboundItemsCount;
+    var ItemConstructor = _ref2.ItemConstructor;
+    var models = _ref2.models;
 
     _classCallCheck(this, BufferedListView);
 
     var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this));
 
-    $.extend(_this3, Bullet);
+    if (EventManager) $.extend(_this3, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
     Object.defineProperty(_this3, '_currentVisibleRange', {
       configurable: true, writable: false,
       value: createConstantArray(0, 0)
@@ -197,7 +236,7 @@ var BufferedListView = function (_View2) {
     value: function destroy() {
       logger.debug('Destroying instance of BufferedListView');
       $(window).off('resize', this._onWindowResize);
-      if (this.el) delete this.el.__view__;
+      if (this.el) this.el.__view__ = null;
       _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
     }
   }, {
@@ -246,7 +285,7 @@ var BufferedListView = function (_View2) {
     key: 'render',
     value: function render() {
       // render view
-      this.$el.html(this.template());
+      this.renderBaseView();
       this.isRendered = true;
       // query elements
       this.$listContainer = this.$(this.listContainerSelector);
@@ -259,6 +298,11 @@ var BufferedListView = function (_View2) {
         this.updateListScrollerHeight();
         this.renderVisibleItems();
       }
+    }
+  }, {
+    key: 'renderBaseView',
+    value: function renderBaseView() {
+      this.$el.html(this.template());
     }
   }, {
     key: 'attachTo',
@@ -330,13 +374,13 @@ var BufferedListView = function (_View2) {
 
   }, {
     key: 'renderItemsRange',
-    value: function renderItemsRange(_ref2) {
+    value: function renderItemsRange(_ref3) {
       var _this4 = this;
 
-      var _ref3 = _slicedToArray(_ref2, 2);
+      var _ref4 = _slicedToArray(_ref3, 2);
 
-      var start = _ref3[0];
-      var end = _ref3[1];
+      var start = _ref4[0];
+      var end = _ref4[1];
 
       if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
@@ -402,6 +446,7 @@ var BufferedListView = function (_View2) {
     key: 'getView',
     value: function getView(model, indexInModelList) {
       var view = this.viewsMap.get(model[this.idModelPropertyName]);
+
       if (typeof this.idModelPropertyName === 'undefined') {
         throw new Error('BufferedListView#idModelPropertyName must be defined');
       }
@@ -411,20 +456,16 @@ var BufferedListView = function (_View2) {
       if (!view) {
         view = this.createView(model, indexInModelList);
         this.viewsMap.set(model[this.idModelPropertyName], view);
-      } else if (view.model !== model) {
-        view.model = model;
         view.render();
-      }
-      view.indexInModelList = indexInModelList;
+      } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update' });
+
       return view;
     }
   }, {
     key: 'createView',
     value: function createView(model, indexInModelList) {
       var view = new (this.getItemConstructor())();
-      view.model = model;
-      view.indexInModelList = indexInModelList;
-      view.render();
+      view.onInitialize({ type: 'initialize', model: model, parentListView: this, indexInModelList: indexInModelList });
       return view;
     }
 
@@ -451,6 +492,8 @@ var BufferedListView = function (_View2) {
     value: function removeView(view) {
       this.viewsMap.delete(view.model[this.idModelPropertyName]);
       view[this.getItemConstructor().DESTROY_METHOD]();
+      view.parentListView = null;
+      view.model = null;
     }
 
     /**
@@ -556,8 +599,3 @@ BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
 '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',
 // BufferedListView
 'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight', 'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models', 'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer');
-
-BufferedListView.setLogLevel = function (levelName) {
-  levelName = levelName.toUpperCase();
-  if (levelName in KLogger) logger.loglevel = KLogger[levelName];
-};

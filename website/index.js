@@ -1,4 +1,4 @@
-require([ 'jquery' ], function (jQuery) {
+require([ 'jquery', 'bullet' ], function (jQuery, Bullet) {
   function addStyle(url) {
     console.log('addStyle', url);
     var link = document.createElement('link');
@@ -19,8 +19,11 @@ require([ 'jquery' ], function (jQuery) {
 
       const constructorName = conf['ListConstructor'];
 
-      require([ constructorName ], function (importListView) {
+      require([ 'BufferedListView', constructorName ], function (importBufferedListView, importListView) {
+        var BufferedListView = importBufferedListView.default;
         var ListView = importListView.default;
+
+        BufferedListView.setEventManager(Bullet);
 
         $.getJSON(conf['data'])
           .done(function onDataLoaded(data) {

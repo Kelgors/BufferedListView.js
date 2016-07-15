@@ -1,13 +1,30 @@
 import $ from 'jquery';
-import Bullet from 'bullet';
 import View from 'View';
 import BufferedListItemView from 'BufferedListItemView';
 import { createConstantArray } from 'arrays';
 import KLogger from 'KLogger';
 
 const logger = new KLogger(KLogger.WARN);
+let EventManager;
+
+/**
+ * interface EventManager {
+ *   on(eventName, eventCallback, eventContext?);
+ *   off(eventName, eventCallback, eventContext?);
+ *   trigger(eventName, eventValue);
+ * }
+**/
 
 export default class BufferedListView extends View {
+
+  static setEventManager(eventManager) {
+    EventManager = eventManager;
+  }
+
+  static setLogLevel(levelName) {
+    levelName = levelName.toUpperCase();
+    if (levelName in KLogger) logger.loglevel = KLogger[levelName];
+  }
 
   /**
    *
@@ -23,7 +40,8 @@ export default class BufferedListView extends View {
   **/
   constructor({ listContainerSelector, scrollerContainerSelector, listHeight, listItemHeight, idModelPropertyName, visibleOutboundItemsCount, ItemConstructor, models } = {}) {
     super();
-    $.extend(this, Bullet);
+    if (EventManager) $.extend(this, EventManager);
+    else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
     Object.defineProperty(this, '_currentVisibleRange', {
       configurable: true, writable: false,
       value: createConstantArray(0, 0)
@@ -221,7 +239,7 @@ export default class BufferedListView extends View {
   **/
   getView(model, indexInModelList) {
     let view = this.viewsMap.get(model[this.idModelPropertyName]);
-    let shouldBeRendered = false;
+
     if (typeof this.idModelPropertyName === 'undefined') {
       throw new Error('BufferedListView#idModelPropertyName must be defined');
     }
@@ -231,23 +249,15 @@ export default class BufferedListView extends View {
     if (!view) {
       view = this.createView(model, indexInModelList);
       this.viewsMap.set(model[this.idModelPropertyName], view);
-      shouldBeRendered = true;
-    } else if (view.model !== model) {
-      view.model = model;
-      view.parentListView = this;
-      shouldBeRendered = true;
-    }
+      view.render();
+    } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update' });
 
-    view.indexInModelList = indexInModelList;
-    if (shouldBeRendered) view.render();
     return view;
   }
 
   createView(model, indexInModelList) {
     const view = new (this.getItemConstructor())();
-    view.model = model;
-    view.indexInModelList = indexInModelList;
-    view.parentListView = this;
+    view.onInitialize({ type: 'initialize', model: model, parentListView: this, indexInModelList: indexInModelList });
     return view;
   }
 
@@ -354,8 +364,4 @@ BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
   'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer'
 );
 
-BufferedListView.setLogLevel = function (levelName) {
-  levelName = levelName.toUpperCase();
-  if (levelName in KLogger) logger.loglevel = KLogger[levelName];
-};
 
