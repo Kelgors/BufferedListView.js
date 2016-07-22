@@ -27,7 +27,7 @@
     "pool.js": "master",
     "jquery": "^2.2.2",
     "bullet": "^2.2.1",
-    "SafeObject.js": "^1.1.1",
+    "SafeObject.js": "^1.2.0",
     "klogger": "^1.0.1"
   },
   "devDependencies": {

@@ -23,4 +23,8 @@ export default class BufferedListItemView extends View {
 
 BufferedListItemView.tagName = 'li';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
-BufferedListItemView.INSTANCE_PROPERTIES = [ 'indexInModelList', 'model', 'parentListView' ];
+BufferedListItemView.INSTANCE_PROPERTIES = {
+  indexInModelList: null,
+  model: null,
+  parentListView: null
+};

@@ -94,7 +94,11 @@ var View = function (_SafeObject) {
   return View;
 }(SafeObject);
 
-View.INSTANCE_PROPERTIES = ['el', '$el', 'model'];
+View.INSTANCE_PROPERTIES = {
+  el: null,
+  $el: null,
+  model: null
+};
 
 var BufferedListItemView = function (_View) {
   _inherits(BufferedListItemView, _View);
@@ -136,7 +140,11 @@ var BufferedListItemView = function (_View) {
 
 BufferedListItemView.tagName = 'li';
 BufferedListItemView.DESTROY_METHOD = 'destroy';
-BufferedListItemView.INSTANCE_PROPERTIES = ['indexInModelList', 'model', 'parentListView'];
+BufferedListItemView.INSTANCE_PROPERTIES = {
+  indexInModelList: null,
+  model: null,
+  parentListView: null
+};
 
 var logger = new KLogger(KLogger.WARN);
 var EventManager = void 0;
@@ -201,10 +209,8 @@ var BufferedListView = function (_View2) {
       value: createConstantArray(0, 0)
     });
 
-    _this3.isRendered = false;
     _this3.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
     _this3.scrollerContainerSelector = scrollerContainerSelector || '.list-container:first';
-    _this3.scrollPositionY = 0;
     _this3.listHeight = listHeight || 'auto';
     _this3.listHeightAutoMode = _this3.listHeight === 'auto';
     _this3.listItemHeight = listItemHeight;
@@ -214,7 +220,6 @@ var BufferedListView = function (_View2) {
 
     _this3.models = models || [];
     _this3.ItemConstructor = ItemConstructor || null;
-    _this3.viewsMap = new Map();
 
     _this3._onWindowResize = _this3.onResize.bind(_this3);
     $(window).on('resize', _this3._onWindowResize);
@@ -594,8 +599,22 @@ var BufferedListView = function (_View2) {
 }(View);
 
 BufferedListView.debugMode = false;
-BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
-// included by Bullet
-'_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks', 'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync', 'setTriggerAsync', '_currentVisibleRange',
-// BufferedListView
-'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight', 'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models', 'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer');
+BufferedListView.INSTANCE_PROPERTIES = {
+  // BufferedListView
+  _currentVisibleRange: null,
+  isRendered: false,
+  listContainerSelector: null,
+  scrollerContainerSelector: null,
+  scrollPositionY: 0,
+  listHeight: null,
+  listHeightAutoMode: null,
+  listItemHeight: null,
+  idModelPropertyName: null,
+  visibleOutboundItemsCount: null,
+  models: Array,
+  ItemConstructor: null,
+  viewsMap: Map,
+  _onWindowResize: null,
+  $listContainer: null,
+  $scrollerContainer: null
+};

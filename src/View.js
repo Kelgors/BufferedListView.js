@@ -47,8 +47,8 @@ export default class View extends SafeObject {
   }
 }
 
-View.INSTANCE_PROPERTIES = [
-  'el',
-  '$el',
-  'model'
-];
+View.INSTANCE_PROPERTIES = {
+  el: null,
+  $el: null,
+  model: null
+};

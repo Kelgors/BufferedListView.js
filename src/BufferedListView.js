@@ -47,10 +47,8 @@ export default class BufferedListView extends View {
       value: createConstantArray(0, 0)
     });
 
-    this.isRendered = false;
     this.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
     this.scrollerContainerSelector = scrollerContainerSelector || '.list-container:first';
-    this.scrollPositionY = 0;
     this.listHeight = listHeight || 'auto';
     this.listHeightAutoMode = this.listHeight === 'auto';
     this.listItemHeight = listItemHeight;
@@ -60,7 +58,6 @@ export default class BufferedListView extends View {
 
     this.models = models || [];
     this.ItemConstructor = ItemConstructor || null;
-    this.viewsMap = new Map();
 
     this._onWindowResize = this.onResize.bind(this);
     $(window).on('resize', this._onWindowResize);
@@ -353,15 +350,24 @@ export default class BufferedListView extends View {
 }
 
 BufferedListView.debugMode = false;
-BufferedListView.INSTANCE_PROPERTIES = createConstantArray(
-  // included by Bullet
-  '_errors', 'events', '_getMappings', 'on', 'once', 'off', 'replaceCallback', 'replaceAllCallbacks',
-  'trigger', 'addEventName', 'removeEventName', 'getStrictMode', 'setStrictMode', 'getTriggerAsync',
-  'setTriggerAsync', '_currentVisibleRange',
+BufferedListView.INSTANCE_PROPERTIES = {
   // BufferedListView
-  'isRendered', 'listContainerSelector', 'scrollerContainerSelector', 'scrollPositionY', 'listHeight',
-  'listHeightAutoMode', 'listItemHeight', 'idModelPropertyName', 'visibleOutboundItemsCount', 'models',
-  'ItemConstructor', 'viewsMap', '_onWindowResize', '$listContainer', '$scrollerContainer'
-);
+  _currentVisibleRange: null,
+  isRendered: false,
+  listContainerSelector: null,
+  scrollerContainerSelector: null,
+  scrollPositionY: 0,
+  listHeight: null,
+  listHeightAutoMode: null,
+  listItemHeight: null,
+  idModelPropertyName: null,
+  visibleOutboundItemsCount: null,
+  models: Array,
+  ItemConstructor: null,
+  viewsMap: Map,
+  _onWindowResize: null,
+  $listContainer: null,
+  $scrollerContainer: null
+};
 
 
