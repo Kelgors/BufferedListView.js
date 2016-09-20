@@ -32,6 +32,11 @@ require([ 'jquery', 'bullet' ], function (jQuery, Bullet) {
             list.attachTo(document.getElementById('example-list-container'));
             //list.trigger('attach');
             list.render();
+
+            window.addEventListener('beforeunload', function () {
+              list.destroy();
+              list = null;
+            })
           });
       });
     });

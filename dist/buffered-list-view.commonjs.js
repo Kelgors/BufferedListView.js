@@ -450,6 +450,16 @@ var BufferedListView = function (_View) {
       var end = Math.min(this.models.length - 1, start + length);
       return [start, end];
     }
+  }, {
+    key: 'getRangeOfModels',
+    value: function getRangeOfModels(_ref2) {
+      var _ref3 = _slicedToArray(_ref2, 2);
+
+      var start = _ref3[0];
+      var end = _ref3[1];
+
+      return this.models.slice(start, end);
+    }
 
     /**
      *
@@ -458,18 +468,18 @@ var BufferedListView = function (_View) {
 
   }, {
     key: 'renderItemsRange',
-    value: function renderItemsRange(_ref2) {
+    value: function renderItemsRange(_ref4) {
       var _this2 = this;
 
-      var _ref3 = _slicedToArray(_ref2, 2);
+      var _ref5 = _slicedToArray(_ref4, 2);
 
-      var start = _ref3[0];
-      var end = _ref3[1];
+      var start = _ref5[0];
+      var end = _ref5[1];
 
       if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
       var modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
-      var rangeOfModels = this.models.slice(modelsStart, modelsEnd);
+      var rangeOfModels = this.getRangeOfModels([modelsStart, modelsEnd]);
       var views = rangeOfModels.map(function (model, index) {
         var view = _this2.getView(model, modelsStart + Number(index));
         view.el.setAttribute('data-index', view.indexInModelList);

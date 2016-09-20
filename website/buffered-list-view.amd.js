@@ -1,1 +1,1 @@
-/Users/matthieu/Desktop/thalys_26_02_2016/dist/buffered-list-view.amd.js
+../dist/buffered-list-view.amd.js

@@ -179,6 +179,10 @@ export default class BufferedListView extends View {
     return [ start, end ];
   }
 
+  getRangeOfModels([ start, end ]) {
+    return this.models.slice(start, end);
+  }
+
   /**
    *
    * @param {Number[]} tuple - [ startIndex, endIndex ]
@@ -187,7 +191,7 @@ export default class BufferedListView extends View {
     if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
     const modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
     const modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
-    const rangeOfModels = this.models.slice(modelsStart, modelsEnd);
+    const rangeOfModels = this.getRangeOfModels([ modelsStart, modelsEnd ]);
     const views = rangeOfModels.map((model, index) => {
       const view = this.getView(model, modelsStart + Number(index));
       view.el.setAttribute('data-index', view.indexInModelList);
