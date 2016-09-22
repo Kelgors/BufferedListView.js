@@ -276,11 +276,13 @@ define('BufferedListItemView', ['exports', 'View'], function (exports, _View2) {
         this.model = model;
         this.parentListView = parentListView;
         this.indexInModelList = indexInModelList;
+        this.el.setAttribute('data-index', this.indexInModelList);
       }
     }, {
       key: 'onUpdate',
       value: function onUpdate(event) {
         this.indexInModelList = event.indexInModelList;
+        this.el.setAttribute('data-index', this.indexInModelList);
       }
     }]);
 
@@ -433,13 +435,13 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
   var logger = new _KLogger2.default(_KLogger2.default.WARN);
   var EventManager = void 0;
 
-  /**
+  /*
    * interface EventManager {
    *   on(eventName, eventCallback, eventContext?);
    *   off(eventName, eventCallback, eventContext?);
    *   trigger(eventName, eventValue);
    * }
-  **/
+   */
 
   var BufferedListView = function (_View) {
     _inherits(BufferedListView, _View);
@@ -560,6 +562,14 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
         this.$listContainer = this.$(this.listContainerSelector);
         this.$scrollerContainer = this.$(this.scrollerContainerSelector);
         // set on scroll listener
+        /* Try to use passive event
+        const scrollerContainerElement = this.$scrollerContainer.get(0);
+        if (scrollerContainerElement) {
+          scrollerContainerElement.addEventListener('scroll', this.onScroll.bind(this), {
+            passive: true,
+            capture: false
+          });
+        }*/
         this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
         if (this.isAttached) {
@@ -630,15 +640,14 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
 
         var start = _ref5[0];
         var end = _ref5[1];
+        var force = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-        if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
+        if (!force && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
         var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
         var modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
         var rangeOfModels = this.getRangeOfModels([modelsStart, modelsEnd]);
         var views = rangeOfModels.map(function (model, index) {
-          var view = _this2.getView(model, modelsStart + Number(index));
-          view.el.setAttribute('data-index', view.indexInModelList);
-          return view;
+          return _this2.getView(model, modelsStart + Number(index));
         });
         this.renderViews(views);
         Object.defineProperty(this, '_currentVisibleRange', {

@@ -92,7 +92,7 @@ gulp.task('serve:website', function () {
   return connect.server({
     root: 'website',
     livereload: false,
-    port: 3000
+    port: 8080
   });
 });
 

@@ -7,13 +7,13 @@ import KLogger from 'KLogger';
 const logger = new KLogger(KLogger.WARN);
 let EventManager;
 
-/**
+/*
  * interface EventManager {
  *   on(eventName, eventCallback, eventContext?);
  *   off(eventName, eventCallback, eventContext?);
  *   trigger(eventName, eventValue);
  * }
-**/
+ */
 
 export default class BufferedListView extends View {
 
@@ -119,6 +119,14 @@ export default class BufferedListView extends View {
     this.$listContainer = this.$(this.listContainerSelector);
     this.$scrollerContainer = this.$(this.scrollerContainerSelector);
     // set on scroll listener
+    /* Try to use passive event
+    const scrollerContainerElement = this.$scrollerContainer.get(0);
+    if (scrollerContainerElement) {
+      scrollerContainerElement.addEventListener('scroll', this.onScroll.bind(this), {
+        passive: true,
+        capture: false
+      });
+    }*/
     this.$scrollerContainer.on('scroll', this.onScroll.bind(this));
 
     if (this.isAttached) {
@@ -187,15 +195,13 @@ export default class BufferedListView extends View {
    *
    * @param {Number[]} tuple - [ startIndex, endIndex ]
   **/
-  renderItemsRange([ start, end ]) {
-    if (this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
+  renderItemsRange([ start, end ], force = false) {
+    if (!force && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
     const modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
     const modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
     const rangeOfModels = this.getRangeOfModels([ modelsStart, modelsEnd ]);
     const views = rangeOfModels.map((model, index) => {
-      const view = this.getView(model, modelsStart + Number(index));
-      view.el.setAttribute('data-index', view.indexInModelList);
-      return view;
+      return this.getView(model, modelsStart + Number(index));
     });
     this.renderViews(views);
     Object.defineProperty(this, '_currentVisibleRange', {

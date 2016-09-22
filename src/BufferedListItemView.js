@@ -14,10 +14,12 @@ export default class BufferedListItemView extends View {
     this.model = model;
     this.parentListView = parentListView;
     this.indexInModelList = indexInModelList;
+    this.el.setAttribute('data-index', this.indexInModelList);
   }
 
   onUpdate(event) {
     this.indexInModelList = event.indexInModelList;
+    this.el.setAttribute('data-index', this.indexInModelList);
   }
 }
 
