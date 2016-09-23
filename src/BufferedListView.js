@@ -193,10 +193,11 @@ export default class BufferedListView extends View {
 
   /**
    *
-   * @param {Number[]} tuple - [ startIndex, endIndex ]
+   * @param {number[]} tuple - [ startIndex, endIndex ]
+   * @param {boolean} forceRendering
   **/
-  renderItemsRange([ start, end ], force = false) {
-    if (!force && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
+  renderItemsRange([ start, end ], forceRendering = false) {
+    if (!forceRendering && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
     const modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
     const modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
     const rangeOfModels = this.getRangeOfModels([ modelsStart, modelsEnd ]);
@@ -214,8 +215,9 @@ export default class BufferedListView extends View {
   /**
    * Render items that should be currently visible
   **/
-  renderVisibleItems() {
-    this.renderItemsRange(this.defineRangeOfModelsVisibles());
+  renderVisibleItems(forceRendering) {
+    // ensure forceRendering is true.
+    this.renderItemsRange(this.defineRangeOfModelsVisibles(), forceRendering === true);
   }
 
   /**

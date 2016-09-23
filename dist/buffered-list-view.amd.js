@@ -640,9 +640,9 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
 
         var start = _ref5[0];
         var end = _ref5[1];
-        var force = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var forceRendering = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-        if (!force && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
+        if (!forceRendering && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
         var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
         var modelsEnd = Math.min(this.models.length, end + this.visibleOutboundItemsCount);
         var rangeOfModels = this.getRangeOfModels([modelsStart, modelsEnd]);
@@ -658,8 +658,9 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
       }
     }, {
       key: 'renderVisibleItems',
-      value: function renderVisibleItems() {
-        this.renderItemsRange(this.defineRangeOfModelsVisibles());
+      value: function renderVisibleItems(forceRendering) {
+        // ensure forceRendering is true.
+        this.renderItemsRange(this.defineRangeOfModelsVisibles(), forceRendering === true);
       }
     }, {
       key: 'renderViews',
