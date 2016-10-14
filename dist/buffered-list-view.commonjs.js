@@ -64,7 +64,7 @@ var View = function (_SafeObject) {
 
     _this.$el = (0, _jquery2.default)(_this.el = document.createElement(_this.constructor.tagName || 'div'));
     _this.$el.addClass('view');
-    _this.el.__view__ = _this;
+    if (typeof DEV_MODE !== 'undefined') _this.el.__view__ = _this;
     return _this;
   }
 
@@ -72,7 +72,7 @@ var View = function (_SafeObject) {
     key: 'destroy',
     value: function destroy() {
       if (this.el) {
-        this.el.__view__ = null;
+        if ('__view__' in this.el) this.el.__view__ = null;
         this.remove();
       }
       _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
@@ -221,6 +221,8 @@ var _KLogger2 = _interopRequireDefault(_KLogger);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -322,7 +324,7 @@ var BufferedListView = function (_View) {
     value: function destroy() {
       logger.debug('Destroying instance of BufferedListView');
       (0, _jquery2.default)(window).off('resize', this._onWindowResize);
-      if (this.el) this.el.__view__ = null;
+      if (this.el && '__view__' in this.el) this.el.__view__ = null;
       _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
     }
   }, {
@@ -523,9 +525,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'renderViews',
     value: function renderViews(views) {
-      var currentViews = this.$listContainer.children().toArray().map(function (node) {
-        return node.__view__;
-      });
+      var currentViews = [].concat(_toConsumableArray(this.viewsMap.values()));
       if (currentViews.length === 0) {
         this.addViews(views);
       } else {
@@ -701,6 +701,7 @@ var BufferedListView = function (_View) {
 exports.default = BufferedListView;
 
 
+BufferedListView.VERSION = '1.1.5';
 BufferedListView.debugMode = false;
 BufferedListView.INSTANCE_PROPERTIES = {
   // BufferedListView

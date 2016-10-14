@@ -130,7 +130,7 @@ define('View', ['exports', 'jquery', 'SafeObject'], function (exports, _jquery, 
 
       _this.$el = (0, _jquery2.default)(_this.el = document.createElement(_this.constructor.tagName || 'div'));
       _this.$el.addClass('view');
-      _this.el.__view__ = _this;
+      if (typeof DEV_MODE !== 'undefined') _this.el.__view__ = _this;
       return _this;
     }
 
@@ -138,7 +138,7 @@ define('View', ['exports', 'jquery', 'SafeObject'], function (exports, _jquery, 
       key: 'destroy',
       value: function destroy() {
         if (this.el) {
-          this.el.__view__ = null;
+          if ('__view__' in this.el) this.el.__view__ = null;
           this.remove();
         }
         _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
@@ -319,6 +319,18 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
     return obj && obj.__esModule ? obj : {
       default: obj
     };
+  }
+
+  function _toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
   }
 
   var _slicedToArray = function () {
@@ -526,7 +538,7 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
       value: function destroy() {
         logger.debug('Destroying instance of BufferedListView');
         (0, _jquery2.default)(window).off('resize', this._onWindowResize);
-        if (this.el) this.el.__view__ = null;
+        if (this.el && '__view__' in this.el) this.el.__view__ = null;
         _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
       }
     }, {
@@ -665,9 +677,7 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
     }, {
       key: 'renderViews',
       value: function renderViews(views) {
-        var currentViews = this.$listContainer.children().toArray().map(function (node) {
-          return node.__view__;
-        });
+        var currentViews = [].concat(_toConsumableArray(this.viewsMap.values()));
         if (currentViews.length === 0) {
           this.addViews(views);
         } else {
@@ -789,6 +799,7 @@ define('BufferedListView', ['exports', 'jquery', 'View', 'BufferedListItemView',
   exports.default = BufferedListView;
 
 
+  BufferedListView.VERSION = '1.1.5';
   BufferedListView.debugMode = false;
   BufferedListView.INSTANCE_PROPERTIES = {
     // BufferedListView

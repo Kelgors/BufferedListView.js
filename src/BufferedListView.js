@@ -76,7 +76,7 @@ export default class BufferedListView extends View {
   destroy() {
     logger.debug('Destroying instance of BufferedListView');
     $(window).off('resize', this._onWindowResize);
-    if (this.el) this.el.__view__ = null;
+    if (this.el && '__view__' in this.el) this.el.__view__ = null;
     super.destroy();
   }
 
@@ -226,7 +226,7 @@ export default class BufferedListView extends View {
    * @param {any[]} views
   **/
   renderViews(views) {
-    const currentViews = this.$listContainer.children().toArray().map(function (node) { return node.__view__; });
+    const currentViews = [...this.viewsMap.values()];
     if (currentViews.length === 0) {
       this.addViews(views);
     } else {
@@ -361,6 +361,7 @@ export default class BufferedListView extends View {
   }
 }
 
+BufferedListView.VERSION = '1.1.5';
 BufferedListView.debugMode = false;
 BufferedListView.INSTANCE_PROPERTIES = {
   // BufferedListView

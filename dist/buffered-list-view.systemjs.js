@@ -129,7 +129,7 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
 
           _this.$el = jQuery(_this.el = document.createElement(_this.constructor.tagName || 'div'));
           _this.$el.addClass('view');
-          _this.el.__view__ = _this;
+          if (typeof DEV_MODE !== 'undefined') _this.el.__view__ = _this;
           return _this;
         }
 
@@ -137,7 +137,7 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
           key: 'destroy',
           value: function destroy() {
             if (this.el) {
-              this.el.__view__ = null;
+              if ('__view__' in this.el) this.el.__view__ = null;
               this.remove();
             }
             _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
@@ -300,6 +300,18 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
 
 System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', 'arrays', 'KLogger'], function (_export, _context) {
   var $, View, BufferedListItemView, createConstantArray, KLogger, _slicedToArray, _get, _createClass, logger, EventManager, BufferedListView;
+
+  function _toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  }
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -511,7 +523,7 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
           value: function destroy() {
             logger.debug('Destroying instance of BufferedListView');
             $(window).off('resize', this._onWindowResize);
-            if (this.el) this.el.__view__ = null;
+            if (this.el && '__view__' in this.el) this.el.__view__ = null;
             _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
           }
         }, {
@@ -650,9 +662,7 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
         }, {
           key: 'renderViews',
           value: function renderViews(views) {
-            var currentViews = this.$listContainer.children().toArray().map(function (node) {
-              return node.__view__;
-            });
+            var currentViews = [].concat(_toConsumableArray(this.viewsMap.values()));
             if (currentViews.length === 0) {
               this.addViews(views);
             } else {
@@ -773,6 +783,7 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
 
       _export('default', BufferedListView);
 
+      BufferedListView.VERSION = '1.1.5';
       BufferedListView.debugMode = false;
       BufferedListView.INSTANCE_PROPERTIES = {
         // BufferedListView

@@ -6,6 +6,8 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -47,7 +49,7 @@ var View = function (_SafeObject) {
 
     _this.$el = jQuery(_this.el = document.createElement(_this.constructor.tagName || 'div'));
     _this.$el.addClass('view');
-    _this.el.__view__ = _this;
+    if (typeof DEV_MODE !== 'undefined') _this.el.__view__ = _this;
     return _this;
   }
 
@@ -55,7 +57,7 @@ var View = function (_SafeObject) {
     key: 'destroy',
     value: function destroy() {
       if (this.el) {
-        this.el.__view__ = null;
+        if ('__view__' in this.el) this.el.__view__ = null;
         this.remove();
       }
       _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
@@ -243,7 +245,7 @@ var BufferedListView = function (_View2) {
     value: function destroy() {
       logger.debug('Destroying instance of BufferedListView');
       $(window).off('resize', this._onWindowResize);
-      if (this.el) this.el.__view__ = null;
+      if (this.el && '__view__' in this.el) this.el.__view__ = null;
       _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
     }
   }, {
@@ -444,9 +446,7 @@ var BufferedListView = function (_View2) {
   }, {
     key: 'renderViews',
     value: function renderViews(views) {
-      var currentViews = this.$listContainer.children().toArray().map(function (node) {
-        return node.__view__;
-      });
+      var currentViews = [].concat(_toConsumableArray(this.viewsMap.values()));
       if (currentViews.length === 0) {
         this.addViews(views);
       } else {
@@ -619,6 +619,7 @@ var BufferedListView = function (_View2) {
   return BufferedListView;
 }(View);
 
+BufferedListView.VERSION = '1.1.5';
 BufferedListView.debugMode = false;
 BufferedListView.INSTANCE_PROPERTIES = {
   // BufferedListView

@@ -11,12 +11,12 @@ export default class View extends SafeObject {
     super();
     this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
     this.$el.addClass('view');
-    this.el.__view__ = this;
+    if (typeof DEV_MODE !== 'undefined') this.el.__view__ = this;
   }
 
   destroy() {
     if (this.el) {
-      this.el.__view__ = null;
+      if ('__view__' in this.el) this.el.__view__ = null;
       this.remove();
     }
     super.destroy();
