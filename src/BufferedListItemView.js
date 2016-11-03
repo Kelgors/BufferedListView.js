@@ -6,6 +6,13 @@ export default class BufferedListItemView extends View {
     this.$el.addClass('item-view');
   }
 
+  destroy() {
+    super.destroy();
+    this.indexInModelList = null;
+    this.model = null;
+    this.parentListView = null;
+  }
+
   template() {
     return String(this.indexInModelList);
   }
@@ -24,9 +31,3 @@ export default class BufferedListItemView extends View {
 }
 
 BufferedListItemView.tagName = 'li';
-BufferedListItemView.DESTROY_METHOD = 'destroy';
-BufferedListItemView.INSTANCE_PROPERTIES = {
-  indexInModelList: null,
-  model: null,
-  parentListView: null
-};

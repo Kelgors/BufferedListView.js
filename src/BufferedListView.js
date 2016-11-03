@@ -2,7 +2,7 @@ import $ from 'jquery';
 import View from 'View';
 import BufferedListItemView from 'BufferedListItemView';
 import { createConstantArray } from 'arrays';
-import KLogger from 'KLogger';
+import KLogger from 'klogger';
 
 const logger = new KLogger(KLogger.WARN);
 let EventManager;
@@ -46,6 +46,10 @@ export default class BufferedListView extends View {
       configurable: true, writable: false,
       value: createConstantArray(0, 0)
     });
+    this.scrollPositionY = 0;
+    this.isRendered = false;
+    this.$listContainer = null;
+    this.$scrollerContainer = null;
 
     this.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
     this.scrollerContainerSelector = scrollerContainerSelector || '.list-container:first';
@@ -56,6 +60,7 @@ export default class BufferedListView extends View {
 
     this.visibleOutboundItemsCount = typeof visibleOutboundItemsCount !== 'number' ? 2 : visibleOutboundItemsCount;
 
+    this.viewsMap = new Map();
     this.models = models || [];
     this.ItemConstructor = ItemConstructor || null;
 
@@ -78,6 +83,21 @@ export default class BufferedListView extends View {
     $(window).off('resize', this._onWindowResize);
     if (this.el && '__view__' in this.el) this.el.__view__ = null;
     super.destroy();
+    this.isRendered = false;
+    this.listContainerSelector = null;
+    this.scrollerContainerSelector = null;
+    this.scrollPositionY = 0;
+    this.listHeight = null;
+    this.listHeightAutoMode = null;
+    this.listItemHeight = null;
+    this.idModelPropertyName = null;
+    this.visibleOutboundItemsCount = null;
+    this.models = null;
+    this.ItemConstructor = null;
+    this.viewsMap = null;
+    this._onWindowResize = null;
+    this.$listContainer = null;
+    this.$scrollerContainer = null;
   }
 
   setModels(models = []) {

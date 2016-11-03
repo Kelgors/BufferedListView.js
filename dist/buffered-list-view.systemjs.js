@@ -29,8 +29,8 @@ System.register("arrays", [], function (_export, _context) {
 });
 'use strict';
 
-System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
-  var jQuery, SafeObject, _get, _createClass, View;
+System.register('View', ['jquery'], function (_export, _context) {
+  var jQuery, _createClass, View;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -38,62 +38,11 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
     }
   }
 
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
   return {
     setters: [function (_jquery) {
       jQuery = _jquery.default;
-    }, function (_SafeObject2) {
-      SafeObject = _SafeObject2.default;
     }],
     execute: function () {
-      _get = function get(object, property, receiver) {
-        if (object === null) object = Function.prototype;
-        var desc = Object.getOwnPropertyDescriptor(object, property);
-
-        if (desc === undefined) {
-          var parent = Object.getPrototypeOf(object);
-
-          if (parent === null) {
-            return undefined;
-          } else {
-            return get(parent, property, receiver);
-          }
-        } else if ("value" in desc) {
-          return desc.value;
-        } else {
-          var getter = desc.get;
-
-          if (getter === undefined) {
-            return undefined;
-          }
-
-          return getter.call(receiver);
-        }
-      };
-
       _createClass = function () {
         function defineProperties(target, props) {
           for (var i = 0; i < props.length; i++) {
@@ -112,9 +61,7 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
         };
       }();
 
-      View = function (_SafeObject) {
-        _inherits(View, _SafeObject);
-
+      View = function () {
         _createClass(View, [{
           key: 'isAttached',
           get: function get() {
@@ -125,12 +72,10 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
         function View() {
           _classCallCheck(this, View);
 
-          var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(View).call(this));
-
-          _this.$el = jQuery(_this.el = document.createElement(_this.constructor.tagName || 'div'));
-          _this.$el.addClass('view');
-          if (typeof DEV_MODE !== 'undefined') _this.el.__view__ = _this;
-          return _this;
+          this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
+          this.$el.addClass('view');
+          this.model = null;
+          if (typeof DEV_MODE !== 'undefined') this.el.__view__ = this;
         }
 
         _createClass(View, [{
@@ -140,7 +85,6 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
               if ('__view__' in this.el) this.el.__view__ = null;
               this.remove();
             }
-            _get(Object.getPrototypeOf(View.prototype), 'destroy', this).call(this);
           }
         }, {
           key: '$',
@@ -174,22 +118,18 @@ System.register('View', ['jquery', 'SafeObject'], function (_export, _context) {
         }]);
 
         return View;
-      }(SafeObject);
+      }();
 
       _export('default', View);
 
-      View.INSTANCE_PROPERTIES = {
-        el: null,
-        $el: null,
-        model: null
-      };
+      View.DESTROY_METHOD = 'destroy';
     }
   };
 });
 'use strict';
 
 System.register('BufferedListItemView', ['View'], function (_export, _context) {
-  var View, _createClass, BufferedListItemView;
+  var View, _createClass, _get, BufferedListItemView;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -244,6 +184,31 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
         };
       }();
 
+      _get = function get(object, property, receiver) {
+        if (object === null) object = Function.prototype;
+        var desc = Object.getOwnPropertyDescriptor(object, property);
+
+        if (desc === undefined) {
+          var parent = Object.getPrototypeOf(object);
+
+          if (parent === null) {
+            return undefined;
+          } else {
+            return get(parent, property, receiver);
+          }
+        } else if ("value" in desc) {
+          return desc.value;
+        } else {
+          var getter = desc.get;
+
+          if (getter === undefined) {
+            return undefined;
+          }
+
+          return getter.call(receiver);
+        }
+      };
+
       BufferedListItemView = function (_View) {
         _inherits(BufferedListItemView, _View);
 
@@ -257,6 +222,14 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
         }
 
         _createClass(BufferedListItemView, [{
+          key: 'destroy',
+          value: function destroy() {
+            _get(Object.getPrototypeOf(BufferedListItemView.prototype), 'destroy', this).call(this);
+            this.indexInModelList = null;
+            this.model = null;
+            this.parentListView = null;
+          }
+        }, {
           key: 'template',
           value: function template() {
             return String(this.indexInModelList);
@@ -287,18 +260,12 @@ System.register('BufferedListItemView', ['View'], function (_export, _context) {
       _export('default', BufferedListItemView);
 
       BufferedListItemView.tagName = 'li';
-      BufferedListItemView.DESTROY_METHOD = 'destroy';
-      BufferedListItemView.INSTANCE_PROPERTIES = {
-        indexInModelList: null,
-        model: null,
-        parentListView: null
-      };
     }
   };
 });
 'use strict';
 
-System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', 'arrays', 'KLogger'], function (_export, _context) {
+System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', 'arrays', 'klogger'], function (_export, _context) {
   var $, View, BufferedListItemView, createConstantArray, KLogger, _slicedToArray, _get, _createClass, logger, EventManager, BufferedListView;
 
   function _toConsumableArray(arr) {
@@ -352,8 +319,8 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
       BufferedListItemView = _BufferedListItemView.default;
     }, function (_arrays) {
       createConstantArray = _arrays.createConstantArray;
-    }, function (_KLogger) {
-      KLogger = _KLogger.default;
+    }, function (_klogger) {
+      KLogger = _klogger.default;
     }],
     execute: function () {
       _slicedToArray = function () {
@@ -490,6 +457,10 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
             configurable: true, writable: false,
             value: createConstantArray(0, 0)
           });
+          _this.scrollPositionY = 0;
+          _this.isRendered = false;
+          _this.$listContainer = null;
+          _this.$scrollerContainer = null;
 
           _this.listContainerSelector = listContainerSelector || '.list-container:first > .list-display';
           _this.scrollerContainerSelector = scrollerContainerSelector || '.list-container:first';
@@ -500,6 +471,7 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
 
           _this.visibleOutboundItemsCount = typeof visibleOutboundItemsCount !== 'number' ? 2 : visibleOutboundItemsCount;
 
+          _this.viewsMap = new Map();
           _this.models = models || [];
           _this.ItemConstructor = ItemConstructor || null;
 
@@ -525,6 +497,21 @@ System.register('BufferedListView', ['jquery', 'View', 'BufferedListItemView', '
             $(window).off('resize', this._onWindowResize);
             if (this.el && '__view__' in this.el) this.el.__view__ = null;
             _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
+            this.isRendered = false;
+            this.listContainerSelector = null;
+            this.scrollerContainerSelector = null;
+            this.scrollPositionY = 0;
+            this.listHeight = null;
+            this.listHeightAutoMode = null;
+            this.listItemHeight = null;
+            this.idModelPropertyName = null;
+            this.visibleOutboundItemsCount = null;
+            this.models = null;
+            this.ItemConstructor = null;
+            this.viewsMap = null;
+            this._onWindowResize = null;
+            this.$listContainer = null;
+            this.$scrollerContainer = null;
           }
         }, {
           key: 'setModels',
