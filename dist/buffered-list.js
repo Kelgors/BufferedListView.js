@@ -2,9 +2,9 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery'), require('klogger')) :
   typeof define === 'function' && define.amd ? define(['jquery', 'klogger'], factory) :
   (global.BufferedList = factory(global.$,global.KLogger));
-}(this, (function ($$1,KLogger) { 'use strict';
+}(this, (function ($,KLogger) { 'use strict';
 
-$$1 = 'default' in $$1 ? $$1['default'] : $$1;
+$ = 'default' in $ ? $['default'] : $;
 KLogger = 'default' in KLogger ? KLogger['default'] : KLogger;
 
 var Arrays = {
@@ -328,7 +328,7 @@ var View = function () {
   function View() {
     classCallCheck(this, View);
 
-    this.$el = $$1(this.el = document.createElement(this.constructor.tagName || 'div'));
+    this.$el = $(this.el = document.createElement(this.constructor.tagName || 'div'));
     this.$el.addClass('view');
     this.model = null;
     if (typeof DEV_MODE !== 'undefined') this.el.__view__ = this;
@@ -481,7 +481,7 @@ var BufferedListView = function (_View) {
 
     var _this = possibleConstructorReturn(this, (BufferedListView.__proto__ || Object.getPrototypeOf(BufferedListView)).call(this));
 
-    if (EventManager) $$1.extend(_this, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
+    if (EventManager) $.extend(_this, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
     Object.defineProperty(_this, '_currentVisibleRange', {
       configurable: true, writable: false,
       value: Arrays.createConstantArray(0, 0)
@@ -505,7 +505,7 @@ var BufferedListView = function (_View) {
     _this.ItemConstructor = ItemConstructor || null;
 
     _this._onWindowResize = _this.onResize.bind(_this);
-    $$1(window).on('resize', _this._onWindowResize);
+    $(window).on('resize', _this._onWindowResize);
 
     if (_this.listHeightAutoMode) {
       _this.once('attach', function () {
@@ -523,7 +523,7 @@ var BufferedListView = function (_View) {
     key: 'destroy',
     value: function destroy() {
       logger.debug('Destroying instance of BufferedListView');
-      $$1(window).off('resize', this._onWindowResize);
+      $(window).off('resize', this._onWindowResize);
       if (this.el && '__view__' in this.el) this.el.__view__ = null;
       get$1(BufferedListView.prototype.__proto__ || Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
       this.isRendered = false;
@@ -618,7 +618,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'attachTo',
     value: function attachTo(element) {
-      $$1(element).append(this.$el);
+      $(element).append(this.$el);
       if (this.el.parentNode) this.trigger('attach');
     }
 
@@ -845,7 +845,7 @@ var BufferedListView = function (_View) {
       } else if (index === 0) {
         $container.prepend(view.el);
       } else {
-        $$1($container.children().get(index)).after(view.el);
+        $($container.children().get(index)).after(view.el);
       }
     }
 
@@ -903,7 +903,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'renderDebugInfos',
     value: function renderDebugInfos() {
-      $$1('#debug-container').html('<div>' + this.toDebugInfos().replace('\n', '</div><div>') + '</div>');
+      $('#debug-container').html('<div>' + this.toDebugInfos().replace('\n', '</div><div>') + '</div>');
     }
   }]);
   return BufferedListView;

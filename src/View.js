@@ -1,4 +1,4 @@
-import jQuery from 'jquery';
+import $ from 'jquery';
 
 export default class View {
 
@@ -7,7 +7,7 @@ export default class View {
   }
 
   constructor() {
-    this.$el = jQuery(this.el = document.createElement(this.constructor.tagName || 'div'));
+    this.$el = $(this.el = document.createElement(this.constructor.tagName || 'div'));
     this.$el.addClass('view');
     this.model = null;
     if (typeof DEV_MODE !== 'undefined') this.el.__view__ = this;
