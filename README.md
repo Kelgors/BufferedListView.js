@@ -1,4 +1,6 @@
-# BufferedListView.js
+# buffered-list.js
 
-npm i buffered-list-view
-bower i buffered-list-view
+```bash
+npm i buffered-list
+bower i buffered-list
+```
