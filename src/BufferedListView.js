@@ -1,8 +1,8 @@
 import $ from 'jquery';
-import View from 'View';
-import BufferedListItemView from 'BufferedListItemView';
-import { createConstantArray } from 'arrays';
 import KLogger from 'klogger';
+import View from './View';
+import BufferedListItemView from './BufferedListItemView';
+import Arrays from './arrays';
 
 const logger = new KLogger(KLogger.WARN);
 let EventManager;
@@ -44,7 +44,7 @@ export default class BufferedListView extends View {
     else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
     Object.defineProperty(this, '_currentVisibleRange', {
       configurable: true, writable: false,
-      value: createConstantArray(0, 0)
+      value: Arrays.createConstantArray(0, 0)
     });
     this.scrollPositionY = 0;
     this.isRendered = false;
@@ -104,7 +104,7 @@ export default class BufferedListView extends View {
     this.models = models;
     Object.defineProperty(this, '_currentVisibleRange', {
       configurable: true, writable: false,
-      value: createConstantArray(-1, -1)
+      value: Arrays.createConstantArray(-1, -1)
     });
     this.updateListScrollerHeight();
     this.renderVisibleItems();
@@ -227,7 +227,7 @@ export default class BufferedListView extends View {
     this.renderViews(views);
     Object.defineProperty(this, '_currentVisibleRange', {
       configurable: true, writable: false,
-      value: createConstantArray(start, end)
+      value: Arrays.createConstantArray(start, end)
     });
     if (BufferedListView.debugMode) this.renderDebugInfos();
   }

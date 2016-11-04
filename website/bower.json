@@ -24,10 +24,8 @@
     "website"
   ],
   "dependencies": {
-    "pool.js": "master",
     "jquery": "^2.2.2",
     "bullet": "^2.2.1",
-    "SafeObject.js": "^1.2.4",
     "klogger": "^1.0.2"
   },
   "devDependencies": {

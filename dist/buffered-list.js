@@ -1,44 +1,324 @@
-"use strict";
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery'), require('klogger')) :
+  typeof define === 'function' && define.amd ? define(['jquery', 'klogger'], factory) :
+  (global.BufferedList = factory(global.$,global.KLogger));
+}(this, (function ($$1,KLogger) { 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.createConstantArray = createConstantArray;
-function createConstantArray() {
-  for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
-    elements[_key] = arguments[_key];
-  }
+$$1 = 'default' in $$1 ? $$1['default'] : $$1;
+KLogger = 'default' in KLogger ? KLogger['default'] : KLogger;
 
-  // create array with predefined properties 0, 1, 2, n...
-  var array = new Array(elements.length);
-  for (var index = 0; index < elements.length; index++) {
-    // typeof array === 'object' =D so,
-    // Assign each elements as enumerable non-writable
-    Object.defineProperty(array, index, {
-      configurable: false, writable: false, enumerable: true,
-      value: elements[index]
-    });
+var Arrays = {
+  createConstantArray: function createConstantArray() {
+    for (var _len = arguments.length, elements = Array(_len), _key = 0; _key < _len; _key++) {
+      elements[_key] = arguments[_key];
+    }
+
+    // create array with predefined properties 0, 1, 2, n...
+    var array = new Array(elements.length);
+    for (var index = 0; index < elements.length; index++) {
+      // typeof array === 'object' =D so,
+      // Assign each elements as enumerable non-writable
+      Object.defineProperty(array, index, {
+        configurable: false, writable: false, enumerable: true,
+        value: elements[index]
+      });
+    }
+    return array;
   }
-  return array;
 };
-'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+var asyncGenerator = function () {
+  function AwaitValue(value) {
+    this.value = value;
+  }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  function AsyncGenerator(gen) {
+    var front, back;
 
-var _jquery = require('jquery');
+    function send(key, arg) {
+      return new Promise(function (resolve, reject) {
+        var request = {
+          key: key,
+          arg: arg,
+          resolve: resolve,
+          reject: reject,
+          next: null
+        };
 
-var _jquery2 = _interopRequireDefault(_jquery);
+        if (back) {
+          back = back.next = request;
+        } else {
+          front = back = request;
+          resume(key, arg);
+        }
+      });
+    }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+    function resume(key, arg) {
+      try {
+        var result = gen[key](arg);
+        var value = result.value;
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+        if (value instanceof AwaitValue) {
+          Promise.resolve(value.value).then(function (arg) {
+            resume("next", arg);
+          }, function (arg) {
+            resume("throw", arg);
+          });
+        } else {
+          settle(result.done ? "return" : "normal", result.value);
+        }
+      } catch (err) {
+        settle("throw", err);
+      }
+    }
+
+    function settle(type, value) {
+      switch (type) {
+        case "return":
+          front.resolve({
+            value: value,
+            done: true
+          });
+          break;
+
+        case "throw":
+          front.reject(value);
+          break;
+
+        default:
+          front.resolve({
+            value: value,
+            done: false
+          });
+          break;
+      }
+
+      front = front.next;
+
+      if (front) {
+        resume(front.key, front.arg);
+      } else {
+        back = null;
+      }
+    }
+
+    this._invoke = send;
+
+    if (typeof gen.return !== "function") {
+      this.return = undefined;
+    }
+  }
+
+  if (typeof Symbol === "function" && Symbol.asyncIterator) {
+    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+      return this;
+    };
+  }
+
+  AsyncGenerator.prototype.next = function (arg) {
+    return this._invoke("next", arg);
+  };
+
+  AsyncGenerator.prototype.throw = function (arg) {
+    return this._invoke("throw", arg);
+  };
+
+  AsyncGenerator.prototype.return = function (arg) {
+    return this._invoke("return", arg);
+  };
+
+  return {
+    wrap: function (fn) {
+      return function () {
+        return new AsyncGenerator(fn.apply(this, arguments));
+      };
+    },
+    await: function (value) {
+      return new AwaitValue(value);
+    }
+  };
+}();
+
+
+
+
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+
+
+
+
+
+
+var get$1 = function get$1(object, property, receiver) {
+  if (object === null) object = Function.prototype;
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get$1(parent, property, receiver);
+    }
+  } else if ("value" in desc) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+
+    if (getter === undefined) {
+      return undefined;
+    }
+
+    return getter.call(receiver);
+  }
+};
+
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+
+
+
+
+
+
+
+
+
+
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
+};
+
+
+
+var set = function set(object, property, value, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent !== null) {
+      set(parent, property, value, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    desc.value = value;
+  } else {
+    var setter = desc.set;
+
+    if (setter !== undefined) {
+      setter.call(receiver, value);
+    }
+  }
+
+  return value;
+};
+
+var slicedToArray = function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+}();
+
+
+
+
+
+
+
+
+
+
+
+
+
+var toConsumableArray = function (arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  } else {
+    return Array.from(arr);
+  }
+};
 
 var View = function () {
-  _createClass(View, [{
+  createClass(View, [{
     key: 'isAttached',
     get: function get() {
       return !!this.el && !!this.el.parentNode;
@@ -46,15 +326,15 @@ var View = function () {
   }]);
 
   function View() {
-    _classCallCheck(this, View);
+    classCallCheck(this, View);
 
-    this.$el = (0, _jquery2.default)(this.el = document.createElement(this.constructor.tagName || 'div'));
+    this.$el = $$1(this.el = document.createElement(this.constructor.tagName || 'div'));
     this.$el.addClass('view');
     this.model = null;
     if (typeof DEV_MODE !== 'undefined') this.el.__view__ = this;
   }
 
-  _createClass(View, [{
+  createClass(View, [{
     key: 'destroy',
     value: function destroy() {
       if (this.el) {
@@ -92,51 +372,27 @@ var View = function () {
       this.el.innerHTML = this.template();
     }
   }]);
-
   return View;
 }();
 
-exports.default = View;
-
 View.DESTROY_METHOD = 'destroy';
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _View2 = require('View');
-
-var _View3 = _interopRequireDefault(_View2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var BufferedListItemView = function (_View) {
-  _inherits(BufferedListItemView, _View);
+  inherits(BufferedListItemView, _View);
 
   function BufferedListItemView() {
-    _classCallCheck(this, BufferedListItemView);
+    classCallCheck(this, BufferedListItemView);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListItemView).call(this));
+    var _this = possibleConstructorReturn(this, (BufferedListItemView.__proto__ || Object.getPrototypeOf(BufferedListItemView)).call(this));
 
     _this.$el.addClass('item-view');
     return _this;
   }
 
-  _createClass(BufferedListItemView, [{
+  createClass(BufferedListItemView, [{
     key: 'destroy',
     value: function destroy() {
-      _get(Object.getPrototypeOf(BufferedListItemView.prototype), 'destroy', this).call(this);
+      get$1(BufferedListItemView.prototype.__proto__ || Object.getPrototypeOf(BufferedListItemView.prototype), 'destroy', this).call(this);
       this.indexInModelList = null;
       this.model = null;
       this.parentListView = null;
@@ -149,9 +405,9 @@ var BufferedListItemView = function (_View) {
   }, {
     key: 'onInitialize',
     value: function onInitialize(_ref) {
-      var model = _ref.model;
-      var parentListView = _ref.parentListView;
-      var indexInModelList = _ref.indexInModelList;
+      var model = _ref.model,
+          parentListView = _ref.parentListView,
+          indexInModelList = _ref.indexInModelList;
 
       this.model = model;
       this.parentListView = parentListView;
@@ -165,55 +421,12 @@ var BufferedListItemView = function (_View) {
       this.el.setAttribute('data-index', this.indexInModelList);
     }
   }]);
-
   return BufferedListItemView;
-}(_View3.default);
-
-exports.default = BufferedListItemView;
-
+}(View);
 
 BufferedListItemView.tagName = 'li';
-'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _jquery = require('jquery');
-
-var _jquery2 = _interopRequireDefault(_jquery);
-
-var _View2 = require('View');
-
-var _View3 = _interopRequireDefault(_View2);
-
-var _BufferedListItemView = require('BufferedListItemView');
-
-var _BufferedListItemView2 = _interopRequireDefault(_BufferedListItemView);
-
-var _arrays = require('arrays');
-
-var _klogger = require('klogger');
-
-var _klogger2 = _interopRequireDefault(_klogger);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var logger = new _klogger2.default(_klogger2.default.WARN);
+var logger = new KLogger(KLogger.WARN);
 var EventManager = void 0;
 
 /*
@@ -225,9 +438,8 @@ var EventManager = void 0;
  */
 
 var BufferedListView = function (_View) {
-  _inherits(BufferedListView, _View);
-
-  _createClass(BufferedListView, null, [{
+  inherits(BufferedListView, _View);
+  createClass(BufferedListView, null, [{
     key: 'setEventManager',
     value: function setEventManager(eventManager) {
       EventManager = eventManager;
@@ -236,7 +448,7 @@ var BufferedListView = function (_View) {
     key: 'setLogLevel',
     value: function setLogLevel(levelName) {
       levelName = levelName.toUpperCase();
-      if (levelName in _klogger2.default) logger.loglevel = _klogger2.default[levelName];
+      if (levelName in KLogger) logger.loglevel = KLogger[levelName];
     }
 
     /**
@@ -255,25 +467,24 @@ var BufferedListView = function (_View) {
   }]);
 
   function BufferedListView() {
-    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        listContainerSelector = _ref.listContainerSelector,
+        scrollerContainerSelector = _ref.scrollerContainerSelector,
+        listHeight = _ref.listHeight,
+        listItemHeight = _ref.listItemHeight,
+        idModelPropertyName = _ref.idModelPropertyName,
+        visibleOutboundItemsCount = _ref.visibleOutboundItemsCount,
+        ItemConstructor = _ref.ItemConstructor,
+        models = _ref.models;
 
-    var listContainerSelector = _ref.listContainerSelector;
-    var scrollerContainerSelector = _ref.scrollerContainerSelector;
-    var listHeight = _ref.listHeight;
-    var listItemHeight = _ref.listItemHeight;
-    var idModelPropertyName = _ref.idModelPropertyName;
-    var visibleOutboundItemsCount = _ref.visibleOutboundItemsCount;
-    var ItemConstructor = _ref.ItemConstructor;
-    var models = _ref.models;
+    classCallCheck(this, BufferedListView);
 
-    _classCallCheck(this, BufferedListView);
+    var _this = possibleConstructorReturn(this, (BufferedListView.__proto__ || Object.getPrototypeOf(BufferedListView)).call(this));
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BufferedListView).call(this));
-
-    if (EventManager) _jquery2.default.extend(_this, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
+    if (EventManager) $$1.extend(_this, EventManager);else throw 'UndefinedEventManagerError: Please set by calling BufferedListView.setEventManager(eventManager : Object)';
     Object.defineProperty(_this, '_currentVisibleRange', {
       configurable: true, writable: false,
-      value: (0, _arrays.createConstantArray)(0, 0)
+      value: Arrays.createConstantArray(0, 0)
     });
     _this.scrollPositionY = 0;
     _this.isRendered = false;
@@ -294,7 +505,7 @@ var BufferedListView = function (_View) {
     _this.ItemConstructor = ItemConstructor || null;
 
     _this._onWindowResize = _this.onResize.bind(_this);
-    (0, _jquery2.default)(window).on('resize', _this._onWindowResize);
+    $$1(window).on('resize', _this._onWindowResize);
 
     if (_this.listHeightAutoMode) {
       _this.once('attach', function () {
@@ -308,13 +519,13 @@ var BufferedListView = function (_View) {
     return _this;
   }
 
-  _createClass(BufferedListView, [{
+  createClass(BufferedListView, [{
     key: 'destroy',
     value: function destroy() {
       logger.debug('Destroying instance of BufferedListView');
-      (0, _jquery2.default)(window).off('resize', this._onWindowResize);
+      $$1(window).off('resize', this._onWindowResize);
       if (this.el && '__view__' in this.el) this.el.__view__ = null;
-      _get(Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
+      get$1(BufferedListView.prototype.__proto__ || Object.getPrototypeOf(BufferedListView.prototype), 'destroy', this).call(this);
       this.isRendered = false;
       this.listContainerSelector = null;
       this.scrollerContainerSelector = null;
@@ -334,12 +545,12 @@ var BufferedListView = function (_View) {
   }, {
     key: 'setModels',
     value: function setModels() {
-      var models = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+      var models = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
       this.models = models;
       Object.defineProperty(this, '_currentVisibleRange', {
         configurable: true, writable: false,
-        value: (0, _arrays.createConstantArray)(-1, -1)
+        value: Arrays.createConstantArray(-1, -1)
       });
       this.updateListScrollerHeight();
       this.renderVisibleItems();
@@ -353,7 +564,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'getItemConstructor',
     value: function getItemConstructor() {
-      return this.ItemConstructor || _BufferedListItemView2.default;
+      return this.ItemConstructor || BufferedListItemView;
     }
 
     /* Rendering related methods */
@@ -407,7 +618,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'attachTo',
     value: function attachTo(element) {
-      (0, _jquery2.default)(element).append(this.$el);
+      $$1(element).append(this.$el);
       if (this.el.parentNode) this.trigger('attach');
     }
 
@@ -421,7 +632,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'scrollToIndex',
     value: function scrollToIndex(index) {
-      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       var scrollTopPosition = index * this.listItemHeight;
       if (options.animate) {
@@ -469,10 +680,9 @@ var BufferedListView = function (_View) {
   }, {
     key: 'getRangeOfModels',
     value: function getRangeOfModels(_ref2) {
-      var _ref3 = _slicedToArray(_ref2, 2);
-
-      var start = _ref3[0];
-      var end = _ref3[1];
+      var _ref3 = slicedToArray(_ref2, 2),
+          start = _ref3[0],
+          end = _ref3[1];
 
       return this.models.slice(start, end);
     }
@@ -488,11 +698,11 @@ var BufferedListView = function (_View) {
     value: function renderItemsRange(_ref4) {
       var _this2 = this;
 
-      var _ref5 = _slicedToArray(_ref4, 2);
+      var _ref5 = slicedToArray(_ref4, 2),
+          start = _ref5[0],
+          end = _ref5[1];
 
-      var start = _ref5[0];
-      var end = _ref5[1];
-      var forceRendering = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+      var forceRendering = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
       if (!forceRendering && this._currentVisibleRange[0] === start && this._currentVisibleRange[1] === end) return;
       var modelsStart = Math.max(0, start - this.visibleOutboundItemsCount);
@@ -504,7 +714,7 @@ var BufferedListView = function (_View) {
       this.renderViews(views);
       Object.defineProperty(this, '_currentVisibleRange', {
         configurable: true, writable: false,
-        value: (0, _arrays.createConstantArray)(start, end)
+        value: Arrays.createConstantArray(start, end)
       });
       if (BufferedListView.debugMode) this.renderDebugInfos();
     }
@@ -529,7 +739,7 @@ var BufferedListView = function (_View) {
   }, {
     key: 'renderViews',
     value: function renderViews(views) {
-      var currentViews = [].concat(_toConsumableArray(this.viewsMap.values()));
+      var currentViews = [].concat(toConsumableArray(this.viewsMap.values()));
       if (currentViews.length === 0) {
         this.addViews(views);
       } else {
@@ -635,7 +845,7 @@ var BufferedListView = function (_View) {
       } else if (index === 0) {
         $container.prepend(view.el);
       } else {
-        (0, _jquery2.default)($container.children().get(index)).after(view.el);
+        $$1($container.children().get(index)).after(view.el);
       }
     }
 
@@ -683,27 +893,21 @@ var BufferedListView = function (_View) {
   }, {
     key: 'toDebugInfos',
     value: function toDebugInfos() {
-      var _defineRangeOfModelsV = this.defineRangeOfModelsVisibles();
-
-      var _defineRangeOfModelsV2 = _slicedToArray(_defineRangeOfModelsV, 2);
-
-      var startIndex = _defineRangeOfModelsV2[0];
-      var endIndex = _defineRangeOfModelsV2[1];
+      var _defineRangeOfModelsV = this.defineRangeOfModelsVisibles(),
+          _defineRangeOfModelsV2 = slicedToArray(_defineRangeOfModelsV, 2),
+          startIndex = _defineRangeOfModelsV2[0],
+          endIndex = _defineRangeOfModelsV2[1];
 
       return 'Visible range: (' + startIndex + ', ' + endIndex + ')\nVisible models: (' + Math.max(0, startIndex - this.visibleOutboundItemsCount) + ', ' + Math.min(this.models.length - 1, endIndex + this.visibleOutboundItemsCount) + ')';
     }
   }, {
     key: 'renderDebugInfos',
     value: function renderDebugInfos() {
-      (0, _jquery2.default)('#debug-container').html('<div>' + this.toDebugInfos().replace('\n', '</div><div>') + '</div>');
+      $$1('#debug-container').html('<div>' + this.toDebugInfos().replace('\n', '</div><div>') + '</div>');
     }
   }]);
-
   return BufferedListView;
-}(_View3.default);
-
-exports.default = BufferedListView;
-
+}(View);
 
 BufferedListView.VERSION = '1.1.5';
 BufferedListView.debugMode = false;
@@ -726,3 +930,16 @@ BufferedListView.INSTANCE_PROPERTIES = {
   $listContainer: null,
   $scrollerContainer: null
 };
+
+var bufferedList = {
+  Arrays: Arrays,
+  View: View,
+  BufferedListItemView: BufferedListItemView,
+  BufferedListView: BufferedListView
+};
+
+return bufferedList;
+
+})));
+
+//# sourceMappingURL=buffered-list.js.map

@@ -1,1 +1,0 @@
-../dist/buffered-list-view.amd.js

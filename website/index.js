@@ -1,4 +1,4 @@
-require([ 'jquery', 'bullet' ], function (jQuery, Bullet) {
+require([ 'jquery', 'bullet', 'buffered-list' ], function (jQuery, Bullet, BufferedList) {
   function addStyle(url) {
     console.log('addStyle', url);
     var link = document.createElement('link');
@@ -19,8 +19,8 @@ require([ 'jquery', 'bullet' ], function (jQuery, Bullet) {
 
       const constructorName = conf['ListConstructor'];
 
-      require([ 'BufferedListView', constructorName ], function (importBufferedListView, importListView) {
-        var BufferedListView = importBufferedListView.default;
+      require([ constructorName ], function (importListView) {
+        var BufferedListView = BufferedList.BufferedListView;
         var ListView = importListView.default;
 
         BufferedListView.setEventManager(Bullet);

@@ -1,6 +1,6 @@
-define('country_list/CountryList', [ 'country_list/CountryItemView', 'BufferedListView', 'exports' ], function (importCountryItemView, importBufferedListView, exports) {
+define('country_list/CountryList', [ 'country_list/CountryItemView', 'buffered-list', 'exports' ], function (importCountryItemView, BufferedList, exports) {
   var CountryItemView = importCountryItemView.default;
-  var BufferedListView = importBufferedListView.default;
+  var BufferedListView = BufferedList.BufferedListView;
 
   function CountryList(options) {
     BufferedListView.call(this, Object.assign({

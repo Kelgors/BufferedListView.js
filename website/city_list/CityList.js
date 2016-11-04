@@ -1,6 +1,6 @@
-define('city_list/CityList', [ 'city_list/CityItemView', 'BufferedListView', 'exports' ], function (importCityItemView, importBufferedListView, exports) {
+define('city_list/CityList', [ 'city_list/CityItemView', 'buffered-list', 'exports' ], function (importCityItemView, BufferedList, exports) {
   var CityItemView = importCityItemView.default;
-  var BufferedListView = importBufferedListView.default;
+  var BufferedListView = BufferedList.BufferedListView;
 
   function CityList(options) {
     BufferedListView.call(this, Object.assign({

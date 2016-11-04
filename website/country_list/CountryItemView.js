@@ -1,5 +1,5 @@
-define('country_list/CountryItemView', [ 'BufferedListItemView', 'exports' ], function (importBufferedListItemView, exports) {
-  var BufferedListItemView = importBufferedListItemView.default;
+define('country_list/CountryItemView', [ 'buffered-list', 'exports' ], function (BufferedList, exports) {
+  var BufferedListItemView = BufferedList.BufferedListItemView;
 
   function CountryItemView() {
     BufferedListItemView.call(this);
