@@ -27,6 +27,7 @@ export default class BufferedListItemView extends View {
   onUpdate(event) {
     this.indexInModelList = event.indexInModelList;
     this.el.setAttribute('data-index', this.indexInModelList);
+    this.model = event.model;
   }
 }
 

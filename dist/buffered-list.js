@@ -1,7 +1,7 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery'), require('klogger')) :
-  typeof define === 'function' && define.amd ? define(['jquery', 'klogger'], factory) :
-  (global.BufferedList = factory(global.$,global.KLogger));
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery'), require('klogger')) :
+	typeof define === 'function' && define.amd ? define(['jquery', 'klogger'], factory) :
+	(global.BufferedList = factory(global.$,global.KLogger));
 }(this, (function ($,KLogger) { 'use strict';
 
 $ = 'default' in $ ? $['default'] : $;
@@ -419,6 +419,7 @@ var BufferedListItemView = function (_View) {
     value: function onUpdate(event) {
       this.indexInModelList = event.indexInModelList;
       this.el.setAttribute('data-index', this.indexInModelList);
+      this.model = event.model;
     }
   }]);
   return BufferedListItemView;
@@ -776,7 +777,7 @@ var BufferedListView = function (_View) {
         view = this.createView(model, indexInModelList);
         this.viewsMap.set(model[this.idModelPropertyName], view);
         view.render();
-      } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update' });
+      } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update', model: model });
 
       return view;
     }
@@ -909,7 +910,6 @@ var BufferedListView = function (_View) {
   return BufferedListView;
 }(View);
 
-BufferedListView.VERSION = '1.1.5';
 BufferedListView.debugMode = false;
 BufferedListView.INSTANCE_PROPERTIES = {
   // BufferedListView
@@ -931,7 +931,10 @@ BufferedListView.INSTANCE_PROPERTIES = {
   $scrollerContainer: null
 };
 
+var version = "1.3.1";
+
 var bufferedList = {
+  VERSION: version,
   Arrays: Arrays,
   View: View,
   BufferedListItemView: BufferedListItemView,

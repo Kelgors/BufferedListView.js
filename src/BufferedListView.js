@@ -279,7 +279,7 @@ export default class BufferedListView extends View {
       view = this.createView(model, indexInModelList);
       this.viewsMap.set(model[this.idModelPropertyName], view);
       view.render();
-    } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update' });
+    } else view.onUpdate({ indexInModelList: indexInModelList, parentListView: this, type: 'update', model });
 
     return view;
   }
@@ -381,7 +381,6 @@ export default class BufferedListView extends View {
   }
 }
 
-BufferedListView.VERSION = '1.1.5';
 BufferedListView.debugMode = false;
 BufferedListView.INSTANCE_PROPERTIES = {
   // BufferedListView
